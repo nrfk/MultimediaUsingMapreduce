@@ -1,0 +1,10 @@
+MUMA (Multimedia Using MApreduce) is a project aimed to apply the Map Reduce programming model to multimedia data processing.
+
+The project run in Google App Engine platform. It's composed of several main parts:
+- Example
+  + Pipeline example.
+  + Mapreduce example.
+  + ...
+- DASH (Dynamic Adaptative Streaming over HTTP) lib for working with MPEG-DASH.
+- Multimedia processing using Mapreduce
+  + This part is actively under development.

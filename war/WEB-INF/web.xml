@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?><web-app xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.5" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+	 <servlet>
+	  	<servlet-name>SystemServiceServlet</servlet-name>
+	  	<servlet-class>com.google.api.server.spi.SystemServiceServlet</servlet-class>
+	  	<init-param>
+		   <param-name>services</param-name>
+		   <param-value/>
+	  	</init-param>
+	 </servlet>
+	 <servlet-mapping>
+	  	<servlet-name>SystemServiceServlet</servlet-name>
+	  	<url-pattern>/_ah/spi/*</url-pattern>
+	 </servlet-mapping>
+	
+	 <!-- MapReduceServlet -->
+	<servlet>
+	    <servlet-name>MapReduceServlet</servlet-name>
+	    <servlet-class>
+	      	com.google.appengine.tools.mapreduce.MapReduceServlet
+	    </servlet-class>
+  	</servlet>
+	<servlet-mapping>
+	   	<servlet-name>MapReduceServlet</servlet-name>
+	   	<url-pattern>/mapreduce/*</url-pattern>
+	</servlet-mapping>
+	 
+	 
+	<!-- PipelineServlet -->
+	<servlet>
+    	<servlet-name>PipelineServlet</servlet-name>
+    	<servlet-class>
+    	    com.google.appengine.tools.pipeline.impl.servlets.PipelineServlet
+   	    </servlet-class>
+  	</servlet>
+  	<servlet-mapping>
+	    <servlet-name>PipelineServlet</servlet-name>
+	    <url-pattern>/_ah/pipeline/*</url-pattern>
+  	</servlet-mapping>
+ 
+  	<!-- WordCounterServlet -->
+	<servlet>
+    	<servlet-name>CountEntityServlet</servlet-name>
+    	<servlet-class>
+    	  com.google.appengine.demos.mapreduce.entitycount.CountEntityServlet
+   	    </servlet-class>
+  	</servlet>
+  	<servlet-mapping>
+	    <servlet-name>CountEntityServlet</servlet-name>
+	    <url-pattern>/count-entity-servlet</url-pattern>
+  	</servlet-mapping>
+  	
+  	<!-- CharacterCounterServlet -->
+	<servlet>
+    	<servlet-name>CharacterCounterServlet</servlet-name>
+    	<servlet-class>
+    	  fr.telecomParistech.example.mapreduce.CharacterCounterServlet
+   	    </servlet-class>
+  	</servlet>
+  	<servlet-mapping>
+	    <servlet-name>CharacterCounterServlet</servlet-name>
+	    <url-pattern>/character-counter-servlet</url-pattern>
+  	</servlet-mapping>
+  	
+  	<!-- Upload Blobstore Servlet -->
+	<servlet>
+    	<servlet-name>Upload</servlet-name>
+    	<servlet-class>
+    	  fr.telecomParistech.example.blobstore.Upload
+   	    </servlet-class>
+  	</servlet>
+  	<servlet-mapping>
+	    <servlet-name>Upload</servlet-name>
+	    <url-pattern>/upload</url-pattern>
+  	</servlet-mapping>
+  	
+  	
+  	
+  	
+  	<!-- MUMA -->
+  	
+  	
+  	<!-- Serve Blobstore Servlet -->
+  	<servlet>
+    	<servlet-name>Serve</servlet-name>
+    	<servlet-class>
+    	  fr.telecomParistech.example.blobstore.Serve
+   	    </servlet-class>
+  	</servlet>
+  	<servlet-mapping>
+	    <servlet-name>Serve</servlet-name>
+	    <url-pattern>/serve</url-pattern>
+  	</servlet-mapping>
+  	
+  	<!-- MdpParserServlet Servlet -->
+  	<servlet>
+    	<servlet-name>MpdParserServlet</servlet-name>
+    	<servlet-class>
+    	  fr.telecomParistech.servlet.MpdParserServlet
+   	    </servlet-class>
+  	</servlet>
+  	<servlet-mapping>
+	    <servlet-name>MpdParserServlet</servlet-name>
+	    <url-pattern>/parse-mdp-servlet</url-pattern>
+  	</servlet-mapping>
+  	
+  	<!-- Dash MapReduce Servlet -->
+  	<servlet>
+    	<servlet-name>DashMapReduceServlet</servlet-name>
+    	<servlet-class>
+    	 	fr.telecomParistech.servlet.DashMapReduceServlet
+   	    </servlet-class>
+  	</servlet>
+  	<servlet-mapping>
+	    <servlet-name>DashMapReduceServlet</servlet-name>
+	    <url-pattern>/process-dash-using-mapreduce</url-pattern>
+  	</servlet-mapping>
+  	
+  	<!-- Test Blob Store Servlet -->
+  	<servlet>
+    	<servlet-name>TestBlobStore</servlet-name>
+    	<servlet-class>
+    	  fr.telecomParistech.example.blobstore.TestBlobStore
+   	    </servlet-class>
+  	</servlet>
+  	<servlet-mapping>
+	    <servlet-name>TestBlobStore</servlet-name>
+	    <url-pattern>/test-blobstore</url-pattern>
+  	</servlet-mapping>
+  	
+  	<!-- ReadBlob Servlet -->
+  	<servlet>
+    	<servlet-name>ReadBlobServlet</servlet-name>
+    	<servlet-class>
+    	  fr.telecomParistech.mapreduce.ReadBlobServlet
+   	    </servlet-class>
+  	</servlet>
+  	<servlet-mapping>
+	    <servlet-name>ReadBlobServlet</servlet-name>
+	    <url-pattern>/read-blob-servlet</url-pattern>
+  	</servlet-mapping>
+  	
+  	<!-- ConcatenateDashServlet-->
+  	<servlet>
+    	<servlet-name>ConcatenateDashServlet</servlet-name>
+    	<servlet-class>
+    	  fr.telecomParistech.mapreduce.ConcatenateDashServlet
+   	    </servlet-class>
+  	</servlet>
+  	<servlet-mapping>
+	    <servlet-name>ConcatenateDashServlet</servlet-name>
+	    <url-pattern>/concatenate-dash-servlet</url-pattern>
+  	</servlet-mapping>
+  	
+  	
+  	<!-- MP4ParserServlet -->
+  	<servlet>
+    	<servlet-name>MP4ParserServlet</servlet-name>
+    	<servlet-class>
+    	  fr.telecomParistech.dash.util.MP4ParserServlet
+   	    </servlet-class>
+  	</servlet>
+  	<servlet-mapping>
+	    <servlet-name>MP4ParserServlet</servlet-name>
+	    <url-pattern>/test-mp4parser</url-pattern>
+  	</servlet-mapping>
+  	
+  	<!-- ImageTransformerServlet -->
+  	<servlet>
+    	<servlet-name>ImageTransformerServlet</servlet-name>
+    	<servlet-class>
+    	 fr.telecomParistech.servlet.ImageTransformerServlet
+   	    </servlet-class>
+  	</servlet>
+  	<servlet-mapping>
+	    <servlet-name>ImageTransformerServlet</servlet-name>
+	    <url-pattern>/transform-image-servlet</url-pattern>
+  	</servlet-mapping>
+  	
+  	<!-- ImageGeneratorServlet -->
+  	<servlet>
+    	<servlet-name>ImageGeneratorServlet</servlet-name>
+    	<servlet-class>
+    	 fr.telecomParistech.servlet.ImageGeneratorServlet
+   	    </servlet-class>
+  	</servlet>
+  	<servlet-mapping>
+	    <servlet-name>ImageGeneratorServlet</servlet-name>
+	    <url-pattern>/generate-image-servlet</url-pattern>
+  	</servlet-mapping>
+  	
+  	<!-- Security constraint -->
+  	<security-constraint>
+	  	<web-resource-collection>
+	    	<url-pattern>/mapreduce/*</url-pattern>
+	  	</web-resource-collection>
+	  	<auth-constraint>
+	    	<role-name>admin</role-name>
+	  	</auth-constraint>
+	</security-constraint>
+
+ 	<!-- List of index pages -->
+ 	<welcome-file-list>
+		<welcome-file>index.html</welcome-file>
+	</welcome-file-list>
+</web-app>
