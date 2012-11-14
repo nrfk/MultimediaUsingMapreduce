@@ -35,6 +35,18 @@ public class ConvertUtility {
 		}
 	}
 	
+	public static String byteArrayToHext(byte[] value) {
+		StringBuffer strBuffer = new StringBuffer();
+		for (byte b : value) {
+			String hex = Integer.toHexString(b & 0xFF);
+			if (hex.length() == 1) {
+				hex = "0" + hex;
+			}
+			strBuffer.append(hex + " ");
+		}
+		return strBuffer.toString();
+	}
+	
 	public static void main(String[] args) {
 		int number = 0x0f1a6674;
 		byte[] bytes = integerToByteArray(number, ByteOrder.BIG_ENDIAN);

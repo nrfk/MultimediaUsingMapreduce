@@ -22,7 +22,7 @@
 	<servlet-mapping>
 	   	<servlet-name>MapReduceServlet</servlet-name>
 	   	<url-pattern>/mapreduce/*</url-pattern>
-	</servlet-mapping>
+	</servlet-mapping><url-pattern>/mapreduce/*</url-pattern>
 	 
 	 
 	<!-- PipelineServlet -->
@@ -38,7 +38,7 @@
   	</servlet-mapping>
  
   	<!-- WordCounterServlet -->
-	<servlet>
+	<!-- <servlet>
     	<servlet-name>CountEntityServlet</servlet-name>
     	<servlet-class>
     	  com.google.appengine.demos.mapreduce.entitycount.CountEntityServlet
@@ -47,8 +47,7 @@
   	<servlet-mapping>
 	    <servlet-name>CountEntityServlet</servlet-name>
 	    <url-pattern>/count-entity-servlet</url-pattern>
-  	</servlet-mapping>
-  	
+  	</servlet-mapping> -->
   	<!-- CharacterCounterServlet -->
 	<servlet>
     	<servlet-name>CharacterCounterServlet</servlet-name>
@@ -73,12 +72,44 @@
 	    <url-pattern>/upload</url-pattern>
   	</servlet-mapping>
   	
+  	<!-- Test Blob Store Servlet -->
+  	<servlet>
+    	<servlet-name>TestBlobStore</servlet-name>
+    	<servlet-class>
+    	  fr.telecomParistech.example.blobstore.TestBlobStore
+   	    </servlet-class>
+  	</servlet>
+  	<servlet-mapping>
+	    <servlet-name>TestBlobStore</servlet-name>
+	    <url-pattern>/test-blobstore</url-pattern>
+  	</servlet-mapping>
+  	
+  	<!-- Test H264PlayerAppengineServlet -->
+  	<servlet>
+    	<servlet-name>H264PlayerAppengineServlet</servlet-name>
+    	<servlet-class>
+    	  com.twilight.h264.player.H264PlayerAppengineServlet
+   	    </servlet-class>
+  	</servlet>
+  	<servlet-mapping>
+	    <servlet-name>H264PlayerAppengineServlet</servlet-name>
+	    <url-pattern>/h264</url-pattern>
+  	</servlet-mapping>
+  	
+  	<!-- MP4ParserServlet -->
+  	<servlet>
+    	<servlet-name>MP4ParserServlet</servlet-name>
+    	<servlet-class>
+    	  fr.telecomParistech.dash.util.MP4ParserServlet
+   	    </servlet-class>
+  	</servlet>
+  	<servlet-mapping>
+	    <servlet-name>MP4ParserServlet</servlet-name>
+	    <url-pattern>/test-mp4parser</url-pattern>
+  	</servlet-mapping>
   	
   	
-  	
-  	<!-- MUMA -->
-  	
-  	
+  	<!-- ****************** MUMA ********************************* -->
   	<!-- Serve Blobstore Servlet -->
   	<servlet>
     	<servlet-name>Serve</servlet-name>
@@ -115,18 +146,6 @@
 	    <url-pattern>/process-dash-using-mapreduce</url-pattern>
   	</servlet-mapping>
   	
-  	<!-- Test Blob Store Servlet -->
-  	<servlet>
-    	<servlet-name>TestBlobStore</servlet-name>
-    	<servlet-class>
-    	  fr.telecomParistech.example.blobstore.TestBlobStore
-   	    </servlet-class>
-  	</servlet>
-  	<servlet-mapping>
-	    <servlet-name>TestBlobStore</servlet-name>
-	    <url-pattern>/test-blobstore</url-pattern>
-  	</servlet-mapping>
-  	
   	<!-- ReadBlob Servlet -->
   	<servlet>
     	<servlet-name>ReadBlobServlet</servlet-name>
@@ -137,31 +156,6 @@
   	<servlet-mapping>
 	    <servlet-name>ReadBlobServlet</servlet-name>
 	    <url-pattern>/read-blob-servlet</url-pattern>
-  	</servlet-mapping>
-  	
-  	<!-- ConcatenateDashServlet-->
-  	<servlet>
-    	<servlet-name>ConcatenateDashServlet</servlet-name>
-    	<servlet-class>
-    	  fr.telecomParistech.mapreduce.ConcatenateDashServlet
-   	    </servlet-class>
-  	</servlet>
-  	<servlet-mapping>
-	    <servlet-name>ConcatenateDashServlet</servlet-name>
-	    <url-pattern>/concatenate-dash-servlet</url-pattern>
-  	</servlet-mapping>
-  	
-  	
-  	<!-- MP4ParserServlet -->
-  	<servlet>
-    	<servlet-name>MP4ParserServlet</servlet-name>
-    	<servlet-class>
-    	  fr.telecomParistech.dash.util.MP4ParserServlet
-   	    </servlet-class>
-  	</servlet>
-  	<servlet-mapping>
-	    <servlet-name>MP4ParserServlet</servlet-name>
-	    <url-pattern>/test-mp4parser</url-pattern>
   	</servlet-mapping>
   	
   	<!-- ImageTransformerServlet -->

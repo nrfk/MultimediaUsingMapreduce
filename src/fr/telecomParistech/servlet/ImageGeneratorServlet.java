@@ -23,7 +23,11 @@ import fr.telecomParistech.image.bitmap.BitmapHeader;
 import fr.telecomParistech.image.bitmap.BitmapHeader.Attribute;
 import fr.telecomParistech.image.bitmap.ConvertUtility;
 
-
+/**
+ * 
+ * @author xuan-hoa.nguyen@telecom-paristech.fr
+ *
+ */
 public class ImageGeneratorServlet extends HttpServlet{
 	
 	private static final long serialVersionUID = -9217605282151494852L;

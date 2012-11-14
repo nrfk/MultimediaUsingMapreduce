@@ -114,6 +114,7 @@ public class CountEntityServlet extends HttpServlet {
   public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     if (userService.getCurrentUser() == null) {
       log.info("no user");
+      resp.sendRedirect(userService.createLoginURL(req.getRequestURI()));
       return;
     }
     writeResponse(resp);

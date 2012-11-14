@@ -8,12 +8,11 @@ import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -36,25 +35,23 @@ import com.coremedia.iso.boxes.StaticChunkOffsetBox;
 import com.coremedia.iso.boxes.SyncSampleBox;
 import com.coremedia.iso.boxes.TrackBox;
 import com.coremedia.iso.boxes.TrackHeaderBox;
-import com.google.appengine.api.datastore.DatastoreService;
-import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.files.AppEngineFile;
 import com.google.appengine.api.files.FileService;
 import com.google.appengine.api.files.FileServiceFactory;
 import com.google.appengine.api.files.FileWriteChannel;
 
-
+/**
+ * Parser MP4 file to get I-Frame
+ * @author xuan-hoa.nguyen@telecom-paristech.fr
+ *
+ */
 public class MP4ParserServlet extends HttpServlet {
-
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 297497904326701394L;
-	private static final DatastoreService dataStore = 
-			DatastoreServiceFactory.getDatastoreService();
 	private static final FileService fileService = 
 			FileServiceFactory.getFileService();
-
+	private static final Logger log = 
+			Logger.getLogger(MP4ParserServlet.class.getName());
+	
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
@@ -121,13 +118,12 @@ public class MP4ParserServlet extends HttpServlet {
 		List<TrackBox> trackBoxList = movieBox.getBoxes(TrackBox.class);
 		for (TrackBox trackBox : trackBoxList) {
 			TrackHeaderBox trackHeaderBox = trackBox.getTrackHeaderBox();
-			// Audio Tracks don't have width and weith
+			// Audio Tracks don't have width and weight
 			if ((trackHeaderBox.getWidth() > 0) && (trackHeaderBox.getHeight() > 0)) {
 				return trackBox;
 			}
 		}
 		return null;
-		
 	}
 
 	public byte[] getSampleData(long sampleIndex, SampleTableBox sampleTableBox, byte[] mediaData) {

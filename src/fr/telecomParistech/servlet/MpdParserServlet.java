@@ -14,6 +14,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.output.ByteArrayOutputStream;
+
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -33,14 +35,29 @@ import fr.telecomParistech.dash.mpd.Representation;
 import fr.telecomParistech.dash.mpd.SegmentList;
 import fr.telecomParistech.dash.util.MPDParser;
 
-@SuppressWarnings("serial")
+/**
+ * MpdParserServlet is used to parse .mpd file coming from client side
+ * @author xuan-hoa.nguyen@telecom-paristech.fr
+ *
+ */
 public class MpdParserServlet extends HttpServlet {
-	private static final Logger log = 
-			Logger.getLogger(MpdParserServlet.class.getName());
-	private static final DatastoreService dataStore = 
-			DatastoreServiceFactory.getDatastoreService();;
+	private static final long serialVersionUID = 9114247753565601970L;
+	private static final Logger log; 
+	private static final DatastoreService dataStore; 
+	private static final FileService fileService; 
 	
-	
+	// Init
+	static {
+		dataStore = DatastoreServiceFactory.getDatastoreService();;
+		log = Logger.getLogger(MpdParserServlet.class.getName());
+		fileService = FileServiceFactory.getFileService();
+	}
+			
+	/**
+	 * Create mpdFile from raw data inside the request		
+	 * @param request request which contains mpd's raw data 
+	 * @return a reference to MPD object
+	 */
 	private MPD createMpdFile(HttpServletRequest request) {
 		String senderUrl = request.getParameter("senderUrl");
 		URL url = null;
@@ -54,9 +71,16 @@ public class MpdParserServlet extends HttpServlet {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		log.info("mpd file created...");
 		return mpd;
 	}
 	
+	/**
+	 * Get directory which contains mpd file from the fileUrl, for e.x, if 
+	 * the fileUrl is http://link/to/file.txt, the return will be "to" folder
+	 * @param fileUrl fileUrl to get directory
+	 * @return the folder containing the file
+	 */
 	private String getDirectoryUrl(String fileUrl) {
 		int delimIndex = fileUrl.lastIndexOf('/');
 		String dirUrl = fileUrl.substring(0, delimIndex);
@@ -68,18 +92,18 @@ public class MpdParserServlet extends HttpServlet {
 			HttpServletResponse response)
 			throws ServletException, IOException {
 		
+		// ----- Create MPD file ----------
 		MPD mpd = createMpdFile(request);
 		if (mpd == null) {
 			response.sendRedirect("/process-dash.jsp?status=" + 
 					request.getAttribute("status"));
 			return;
 		}
-		System.out.println(mpd);
+		log.finest(mpd.toString());
 		
+		// ------- Ok, now parse it ------------
 		Entity entity = null;
-
 		List<Period> periods = mpd.getAllPeriod();
-		
 		
 		// Get file and dirUrl
 		String fileUrl = request.getParameter("senderUrl");
@@ -105,9 +129,11 @@ public class MpdParserServlet extends HttpServlet {
 							segmentList.getAllMediaSegment();
 					
 					// Create a Blob Store for each init segment of 
-					// a specific representation
-					FileService fileService = 
-							FileServiceFactory.getFileService();
+					// a specific representation. Use Byte ArrayOutputStream
+					// to avoid datastore to reduce the number of read operation
+					// http://stackoverflow.com/questions/8052886/reduce-datastore-read-operation
+					ByteArrayOutputStream byteArrayOut = 
+							new ByteArrayOutputStream();
 					AppEngineFile file = 
 							fileService.createNewBlobFile("video/mp4");
 					boolean lock = true;
@@ -117,16 +143,21 @@ public class MpdParserServlet extends HttpServlet {
 					URL url = new URL(initSegmentUrl);
 					BufferedInputStream bufInput = 
 							new BufferedInputStream(url.openStream());
-					byte[] byteChunk = new byte[4096];
+					byte[] buffer = new byte[4096];
 					int n;
 					long size = 0;
-					while ((n = bufInput.read(byteChunk)) > 0) {
+					while ((n = bufInput.read(buffer)) > 0) {
 						size += n;
-						writeChannel.write(ByteBuffer.wrap(byteChunk, 0, n));
+						byteArrayOut.write(buffer, 0, n);
 					}
+					
+					buffer = byteArrayOut.toByteArray();
+					writeChannel.write(ByteBuffer.
+							wrap(buffer, 0, buffer.length));
 					writeChannel.closeFinally();
 					// ---------------- Done create Blob Store -----------------
 
+					// Create a new Entity to store all the information
 					String representationInfo = "";
 					representationInfo += "id=" + 
 							representation.getId() + ";";

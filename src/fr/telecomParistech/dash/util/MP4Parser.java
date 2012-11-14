@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
 
@@ -24,6 +25,8 @@ import com.coremedia.iso.boxes.TrackBox;
 import com.coremedia.iso.boxes.TrackHeaderBox;
 
 public class MP4Parser {
+	private static final Logger log = Logger.getLogger(MP4Parser.class.getName());
+	
 	public void parse(String filePath) {
 		FileInputStream fis = null;
 		IsoFile isoFile = null;
@@ -34,80 +37,44 @@ public class MP4Parser {
 			
 			isoFile = new IsoFile(fc);
 			MovieBox movieBox = isoFile.getMovieBox();
-//			System.out.println(format(movieBox.toString()));
-			System.out.println("-------------------------------------------------------");
+			log.info(format(movieBox.toString()));
+			log.info("-------------------------------------------------------");
 			
-			TrackBox trackBox = getVideoTrackBox(movieBox);
-			System.out.println("Number trackbox: " + movieBox.getBoxes(TrackBox.class).size());
-//			System.out.println(format(trackBox.toString()));
-			TrackHeaderBox trackHeaderBox = trackBox.getTrackHeaderBox();
-			
-			System.out.println("Track box type: " + trackHeaderBox.getType());
-//			System.out.println("-------------------------------------------------------");
-			
+			TrackBox trackBox = getVideoTrackBox(movieBox);			
 			MediaBox mediaBox = trackBox.getMediaBox();
-//			System.out.println(format(mediaBox.toString()));
-//			System.out.println("-------------------------------------------------------");
-			
 			MediaInformationBox mediaInformationBox = mediaBox.getMediaInformationBox();
-//			System.out.println(format(mediaInformationBox.toString()));
-//			System.out.println("-------------------------------------------------------");
-			
 			SampleTableBox sampleTableBox = mediaInformationBox.getSampleTableBox();
-//			System.out.println(format(sampleTableBox.toString()));
-//			System.out.println("-------------------------------------------------------");
-			
 			SyncSampleBox syncSampleBox = sampleTableBox.getSyncSampleBox();
-//			System.out.println(format(syncSampleBox.toString()));
-//			System.out.println("-------------------------------------------------------");
 			
 			long[] sampleNumber = syncSampleBox.getSampleNumber();
-			System.out.println("SampleNumber: ");
 			for (int i = 0; i < sampleNumber.length; i++) {
 				System.out.print(sampleNumber[i] + "   ");
 			}
-			System.out.println("\n");
-			
-			
-			
-			
 			
 			// stsc
 			SampleToChunkBox sampleToChunkBox = sampleTableBox.getSampleToChunkBox();
 			List<Entry> chunkList = sampleToChunkBox.getEntries();
-			System.out.println("ChunkList size: " + chunkList.size());
+			log.info("ChunkList size: " + chunkList.size());
 //			for (int i = 0; i < chunkList.size(); i++) {
 //				Entry chunk = chunkList.get(i);
-//				System.out.println("Sample Description Index: " + chunk.getSampleDescriptionIndex());
-//				System.out.println("First Chunk: " + chunk.getFirstChunk());
-//				System.out.println("Sample Per Chunk: " + chunk.getSamplesPerChunk());
-//				System.out.println("-------------------------------------------");
+//				log.info("Sample Description Index: " + chunk.getSampleDescriptionIndex());
+//				log.info("First Chunk: " + chunk.getFirstChunk());
+//				log.info("Sample Per Chunk: " + chunk.getSamplesPerChunk());
+//				log.info("-------------------------------------------");
 //			}
 			
 			SampleSizeBox sampleSizeBox = sampleTableBox.getSampleSizeBox();
-			System.out.println("Sample Count: " + sampleSizeBox.getSampleCount());
-			System.out.println("Sample 90 size:" + sampleSizeBox.getSampleSizeAtIndex(89));
+			log.info("Sample Count: " + sampleSizeBox.getSampleCount());
 			
 			ChunkOffsetBox chunkOffsetBox = sampleTableBox.getChunkOffsetBox();
 			if (chunkOffsetBox instanceof StaticChunkOffsetBox) {
 				StaticChunkOffsetBox staticChunkOffsetBox = (StaticChunkOffsetBox) chunkOffsetBox;
 				long[] chunkOffsets = staticChunkOffsetBox.getChunkOffsets();
 //				for (int i = 0; i < chunkOffsets.length; i++) {
-//					System.out.println("chunk #" + i +", offset: " + chunkOffsets[i]);
+//					log.info("chunk #" + i +", offset: " + chunkOffsets[i]);
 //				}
-				System.out.println("chunk #1: " + chunkOffsets[0]);
-			} else {
-				
-			}
-			
-//			byte[] image = getSampleData(1, sampleTableBox, filePath);
-//			
-//			File h264 = new File("resources/image.h264");
-//			OutputStream out = new FileOutputStream(h264);
-//			out.write(image);
-//			out.close();
-			
-			System.out.println(chunkOffsetBox);
+			} 
+			log.info(chunkOffsetBox.toString());
 			isoFile.close();
 			fis.close();
 			
@@ -116,11 +83,16 @@ public class MP4Parser {
 		} 
 	}
 	
-	public TrackBox getVideoTrackBox(MovieBox movieBox) {
+	/**
+	 * Get VideoTrackBox form movieBox
+	 * @param movieBox movieBox to get the track box
+	 * @return
+	 */
+	private TrackBox getVideoTrackBox(MovieBox movieBox) {
 		List<TrackBox> trackBoxList = movieBox.getBoxes(TrackBox.class);
 		for (TrackBox trackBox : trackBoxList) {
 			TrackHeaderBox trackHeaderBox = trackBox.getTrackHeaderBox();
-			// Audio Tracks don't have width and weith
+			// Audio Tracks don't have width and weight
 			if ((trackHeaderBox.getWidth() > 0) && (trackHeaderBox.getHeight() > 0)) {
 				return trackBox;
 			}
@@ -128,8 +100,8 @@ public class MP4Parser {
 		return null;
 	}
 	
-	public byte[] getSampleData(long sampleIndex, SampleTableBox sampleTableBox, String filePath) {
-		
+	
+	private byte[] getSampleData(long sampleIndex, SampleTableBox sampleTableBox, String filePath) {
 		ChunkData chunkData = getChunkDataOf(sampleIndex, sampleTableBox);
 		long offset = chunkData.getOffset();
 		long currentSample = chunkData.getFirtSample();
@@ -155,7 +127,7 @@ public class MP4Parser {
 		
 	}
 	
-	public long getSampleSize(long sampleIndex, SampleTableBox sampleTableBox) {
+	private long getSampleSize(long sampleIndex, SampleTableBox sampleTableBox) {
 		long sampleQty = getSampleQuantity(sampleTableBox);
 		if ((sampleIndex > sampleQty) || (sampleIndex < 0)) {
 			return -1;
@@ -168,7 +140,7 @@ public class MP4Parser {
 		return sampleSizeBox.getSampleSizeAtIndex((int)sampleIndex);
 	}
 	
-	public ChunkData getChunkDataOf(long sampleIndex, SampleTableBox sampleTableBox) {
+	private ChunkData getChunkDataOf(long sampleIndex, SampleTableBox sampleTableBox) {
 		long sampleQty = getSampleQuantity(sampleTableBox);
 		if ((sampleIndex > sampleQty) || (sampleIndex < 0)) {
 			return null;
@@ -223,7 +195,7 @@ public class MP4Parser {
 		return chunkData;
 	}
 	
-	public long getChunkQuantity(SampleTableBox sampleTableBox) {
+	private long getChunkQuantity(SampleTableBox sampleTableBox) {
 		ChunkOffsetBox chunkOffsetBox = sampleTableBox.getChunkOffsetBox();
 		long chunkQty = 0;
 		if (chunkOffsetBox instanceof StaticChunkOffsetBox) {
@@ -238,7 +210,7 @@ public class MP4Parser {
 		return chunkQty;
 	}
 	
-	public long getSampleQuantity(SampleTableBox sampleTableBox) {		
+	private long getSampleQuantity(SampleTableBox sampleTableBox) {		
 		SampleSizeBox sampleSizeBox = sampleTableBox.getSampleSizeBox();
 		return sampleSizeBox.getSampleCount();
 	}
@@ -252,7 +224,12 @@ public class MP4Parser {
 		return output;
 	}
 	
-	public String format(String input) {
+	/**
+	 * Format String, used for debug.
+	 * @param input string to format
+	 * @return
+	 */
+	private String format(String input) {
 		if ("" == input || null == input) 
 			return "";
 
@@ -288,6 +265,6 @@ public class MP4Parser {
 		// TODO Auto-generated method stub
 		MP4Parser mp4Parser = new MP4Parser();
 		mp4Parser.parse("resources/sample_iPod.m4v");
-		System.out.println("done");
+		log.info("done");
 	}
 }
