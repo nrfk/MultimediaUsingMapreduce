@@ -24,15 +24,17 @@ import fr.telecomParistech.image.bitmap.BitmapHeader.Attribute;
 import fr.telecomParistech.image.bitmap.ConvertUtility;
 
 /**
- * 
+ * This servlet is used to generated some simple image
  * @author xuan-hoa.nguyen@telecom-paristech.fr
  *
  */
 public class ImageGeneratorServlet extends HttpServlet{
 	
 	private static final long serialVersionUID = -9217605282151494852L;
-	private static final FileService fileService = FileServiceFactory.getFileService();
-	private static final BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
+	private static final FileService fileService = 
+			FileServiceFactory.getFileService();
+	private static final BlobstoreService blobstoreService = 
+			BlobstoreServiceFactory.getBlobstoreService();
 	private static final Logger log = 
 			Logger.getLogger(ImageGeneratorServlet.class.getName());
 	static {
@@ -93,7 +95,8 @@ public class ImageGeneratorServlet extends HttpServlet{
 	
 	private byte[] generateImageData(int width, int height, String color) {
 		final int PIXEL_SIZE = 32;
-		ByteBuffer byteBuffer = ByteBuffer.allocate(width * height * PIXEL_SIZE); 
+		ByteBuffer byteBuffer = 
+				ByteBuffer.allocate(width * height * PIXEL_SIZE); 
 		for (int i = 0; i < width; i++) {
 			for (int j = 0; j < height; j++) {
 				if ("RED".equalsIgnoreCase(color)) {
@@ -178,12 +181,14 @@ public class ImageGeneratorServlet extends HttpServlet{
 		
 		bitmapHeader.setAttribute(
 				Attribute.IMAGE_WIDTH, 
-				ConvertUtility.integerToByteArray(width, ByteOrder.LITTLE_ENDIAN));
+				ConvertUtility.integerToByteArray(width, 
+						ByteOrder.LITTLE_ENDIAN));
 		
 		
 		bitmapHeader.setAttribute(
 				Attribute.IMAGE_HEIGHT, 
-				ConvertUtility.integerToByteArray(height, ByteOrder.LITTLE_ENDIAN));
+				ConvertUtility.integerToByteArray(height, 
+						ByteOrder.LITTLE_ENDIAN));
 		
 		// Number of color planes being used
 		bitmapHeader.setAttribute(
@@ -288,7 +293,8 @@ public class ImageGeneratorServlet extends HttpServlet{
 				
 		bitmapHeader.setAttribute(
 				Attribute.FILE_SIZE, 
-				ConvertUtility.integerToByteArray(fileSize, ByteOrder.LITTLE_ENDIAN));
+				ConvertUtility.integerToByteArray(fileSize, 
+						ByteOrder.LITTLE_ENDIAN));
 		
 		return bitmapHeader.dump();
 	}

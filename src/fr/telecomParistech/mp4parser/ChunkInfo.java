@@ -1,4 +1,4 @@
-package fr.telecomParistech.dash.util;
+package fr.telecomParistech.mp4parser;
 
 /**
  * Chunk Data, used to keep the chunk information returned by 
@@ -6,7 +6,7 @@ package fr.telecomParistech.dash.util;
  * @author xuan-hoa.nguyen@telecom-paristech.fr
  *
  */
-public class ChunkData {
+public class ChunkInfo {
 	private long index;
 	private long offset;
 	private long firstSample;
@@ -14,7 +14,7 @@ public class ChunkData {
 	/**
 	 * Default constructor
 	 */
-	public ChunkData() {}
+	public ChunkInfo() {}
 	
 	/**
 	 * Get Index of this chunk
@@ -61,7 +61,7 @@ public class ChunkData {
 
 	public String toString() {
 		String str = "";
-		str += "[" + ChunkData.class.getName() + "]";
+		str += "[" + ChunkInfo.class.getName() + "]";
 		str += "   index: " + index;
 		str += "   offset: " + offset;
 		str += "  firstSample: " + firstSample;

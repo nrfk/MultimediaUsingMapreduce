@@ -14,6 +14,11 @@ import com.google.appengine.tools.mapreduce.KeyValue;
 import com.google.appengine.tools.mapreduce.Reducer;
 import com.google.appengine.tools.mapreduce.ReducerInput;
 
+/**
+ * DashReducer
+ * @author xuan-hoa.nguyen@telecom-paristech.fr
+ *
+ */
 public class DashReducer extends Reducer<String, KeyValue<Long, String>, String>{
 	private static final long serialVersionUID = 527411575120249415L;
 	private static final FileService fileService = 

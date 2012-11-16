@@ -2284,7 +2284,7 @@ public class MpegEncContext {
 	}
 	
 	public int avcodec_decode_video2(AVFrame picture,
-			int[] got_picture_ptr /* [0] = in/out param */, AVPacket avpkt) {
+			int[] got_picture_ptr /* [0] = in/out param */, AVPacket avPacket) {
 		int ret;
 
 		got_picture_ptr[0] = 0;
@@ -2293,15 +2293,15 @@ public class MpegEncContext {
 						this) != 0)
 			return -1;
 
-		this.pkt = avpkt;
+		this.pkt = avPacket;
 
 		if ((this.codec.capabilities & H264Decoder.CODEC_CAP_DELAY) != 0
-				|| avpkt.size != 0) {
-			ret = this.codec.decode(this, picture, got_picture_ptr, avpkt);
+				|| avPacket.size != 0) {
+			ret = this.codec.decode(this, picture, got_picture_ptr, avPacket);
 
 			// emms_c(); //needed to avoid an emms_c() call before every return;
 
-			picture.pkt_dts = avpkt.dts;
+			picture.pkt_dts = avPacket.dts;
 
 			if (got_picture_ptr[0] != 0)
 				this.frame_number++;

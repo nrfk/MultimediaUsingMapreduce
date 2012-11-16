@@ -34,11 +34,11 @@ import fr.telecomParistech.image.bitmap.BitmapHeader;
 import fr.telecomParistech.image.bitmap.BitmapHeader.Attribute;
 import fr.telecomParistech.image.bitmap.ConvertUtility;
 
-public class H264Player{
+public class CopyOfH264Player{
 
 	public static final int INBUF_SIZE = 65535;
 	private static final Logger LOGGER = 
-			Logger.getLogger(H264Player.class.getName());
+			Logger.getLogger(CopyOfH264Player.class.getName());
 	private static final FileService fileService = 
 			FileServiceFactory.getFileService();
 	private static final ImagesService imagesService = 
@@ -60,11 +60,11 @@ public class H264Player{
 	 */
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		new H264Player(args);
+		new CopyOfH264Player(args);
 	}
-	public H264Player() {}
+	public CopyOfH264Player() {}
 
-	public H264Player(String[] args) {
+	public CopyOfH264Player(String[] args) {
 
 
 
@@ -91,19 +91,19 @@ public class H264Player{
 
 		URL url = null;
 		InputStream inputStream = null;
-//		ByteArrayInputStream bais = null;
-//		
-//		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ByteArrayInputStream bais = null;
+		
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
 			url = new URL(filename);
 			inputStream = url.openStream();
 			byte[] buffer = new byte[1024];
 			int n;
-//			while ((n = inputStream.read(buffer, 0, 1024)) > 0) {
-//				baos.write(buffer, 0, n);
-//			}
-//			
-//			bais = new ByteArrayInputStream(baos.toByteArray());
+			while ((n = inputStream.read(buffer, 0, 1024)) > 0) {
+				baos.write(buffer, 0, n);
+			}
+			
+			bais = new ByteArrayInputStream(baos.toByteArray());
 			
 		} catch (MalformedURLException e) {
 			LOGGER.info("MalformedURLException");
@@ -156,7 +156,7 @@ public class H264Player{
 			LOGGER.info("Creating file...");
 			/* the codec gives us the frame size, in samples */
 //			inputStream = new FileInputStream(f);
-//			inputStream = bais;
+			inputStream = bais;
 			LOGGER.info("File created...");
 			frame = 0;
 			int dataPointer; // Current pointer position in the file
@@ -257,25 +257,12 @@ public class H264Player{
 							// Data in h264 is stored in reversed order as in 
 							// .bmp, so we need to "flip" up side down the image
 							for (int i = buffer.length - 1; i >= 0; i--) {
-								data = ConvertUtility.integerToByteArray(
-												buffer[i], 
-												ByteOrder.LITTLE_ENDIAN);
-								byte[] newData = new byte[4];
-								newData[0] = data[2];
-								newData[1] = data[3];
-								newData[2] = data[0];
-								newData[3] = data[1];
-								
-								byteBuffer.put(newData);
+								data = ConvertUtility.integerToByteArray(buffer[i], ByteOrder.LITTLE_ENDIAN);
+								byteBuffer.put(data);
 							}
 
-							// Full image
 							data = byteBuffer.array();
-							byte[] header = 
-									generateImageHeader(
-											avFrame.imageWidth, 
-											avFrame.imageHeight, 
-											data.length);
+							byte[] header = generateImageHeader(avFrame.imageWidth, avFrame.imageHeight, data.length);
 
 							byte[] image = new byte[data.length + header.length];
 							System.arraycopy(header, 0, image, 0, header.length);
@@ -298,7 +285,7 @@ public class H264Player{
 
 
 							imageUrl = imagesService.getServingUrl(servingUrlOptions);
-//							imageUrl = file.getFullPath();
+							imageUrl = file.getFullPath();
 							
 							LOGGER.info("imageUrl #" + imageCounter + ": " + imageUrl);
 							return imageUrl;

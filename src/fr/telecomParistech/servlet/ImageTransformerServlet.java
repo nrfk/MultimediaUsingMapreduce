@@ -28,13 +28,20 @@ import com.google.appengine.api.images.ImagesService;
 import com.google.appengine.api.images.ImagesServiceFactory;
 import com.google.appengine.api.images.Transform;
 
-
+/**
+ * A servlet which does some simple image's transformations.
+ * @author xuan-hoa.nguyen@telecom-paristech.fr
+ *
+ */
 public class ImageTransformerServlet extends HttpServlet {
 	
 	private static final long serialVersionUID = 738753237936169233L;
-	private static final ImagesService imageService = ImagesServiceFactory.getImagesService();
-	private static final FileService fileService = FileServiceFactory.getFileService();
-	private static final BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
+	private static final ImagesService imageService = 
+			ImagesServiceFactory.getImagesService();
+	private static final FileService fileService = 
+			FileServiceFactory.getFileService();
+	private static final BlobstoreService blobstoreService = 
+			BlobstoreServiceFactory.getBlobstoreService();
 	private static final Logger log = 
 			Logger.getLogger(ImageTransformerServlet.class.getName());
 	static {
@@ -83,7 +90,8 @@ public class ImageTransformerServlet extends HttpServlet {
 		boolean lock = true;
 		FileWriteChannel writeChannel = 
 				fileService.openWriteChannel(file, lock);
-		writeChannel.write(ByteBuffer.wrap(newImageData, 0, newImageData.length));
+		writeChannel.write(
+				ByteBuffer.wrap(newImageData, 0, newImageData.length));
 		writeChannel.closeFinally();
 		
 		log.info("Returning image...");

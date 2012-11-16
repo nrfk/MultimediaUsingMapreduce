@@ -96,7 +96,8 @@
 	    <url-pattern>/h264</url-pattern>
   	</servlet-mapping>
   	
-  	<!-- MP4ParserServlet -->
+  	 <!-- MP4ParserServlet -->
+  	 <!--
   	<servlet>
     	<servlet-name>MP4ParserServlet</servlet-name>
     	<servlet-class>
@@ -107,7 +108,7 @@
 	    <servlet-name>MP4ParserServlet</servlet-name>
 	    <url-pattern>/test-mp4parser</url-pattern>
   	</servlet-mapping>
-  	
+  	 -->
   	
   	<!-- ****************** MUMA ********************************* -->
   	<!-- Serve Blobstore Servlet -->

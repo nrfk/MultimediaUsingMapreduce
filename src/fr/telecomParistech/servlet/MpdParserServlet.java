@@ -33,7 +33,7 @@ import fr.telecomParistech.dash.mpd.MediaSegment;
 import fr.telecomParistech.dash.mpd.Period;
 import fr.telecomParistech.dash.mpd.Representation;
 import fr.telecomParistech.dash.mpd.SegmentList;
-import fr.telecomParistech.dash.util.MPDParser;
+import fr.telecomParistech.mp4parser.MPDParser;
 
 /**
  * MpdParserServlet is used to parse .mpd file coming from client side
@@ -174,7 +174,7 @@ public class MpdParserServlet extends HttpServlet {
 						entity = new Entity(key);
 						
 						entity.setProperty("id", mediaSegment.getId());
-						entity.setProperty("initSegmentUrl", file.getFullPath());
+						entity.setProperty("initSegmentUrl",file.getFullPath());
 						entity.setProperty("initSegmentSize", size);
 						entity.setProperty("representationInfo", 
 								representationInfo);

@@ -1,4 +1,4 @@
-package fr.telecomParistech.dash.util;
+package fr.telecomParistech.mp4parser;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,7 +49,7 @@ public class MP4ParserServlet extends HttpServlet {
 	private static final long serialVersionUID = 297497904326701394L;
 	private static final FileService fileService = 
 			FileServiceFactory.getFileService();
-	private static final Logger log = 
+	private static final Logger LOGGER = 
 			Logger.getLogger(MP4ParserServlet.class.getName());
 	
 	@Override
@@ -72,8 +72,10 @@ public class MP4ParserServlet extends HttpServlet {
 
 			TrackBox trackBox = getVideoTrackBox(movieBox);
 			MediaBox mediaBox = trackBox.getMediaBox();
-			MediaInformationBox mediaInformationBox = mediaBox.getMediaInformationBox();
-			SampleTableBox sampleTableBox = mediaInformationBox.getSampleTableBox();
+			MediaInformationBox mediaInformationBox = 
+					mediaBox.getMediaInformationBox();
+			SampleTableBox sampleTableBox = 
+					mediaInformationBox.getSampleTableBox();
 			SyncSampleBox syncSampleBox = sampleTableBox.getSyncSampleBox();
 
 			long[] sampleNumber = syncSampleBox.getSampleNumber();
@@ -81,17 +83,21 @@ public class MP4ParserServlet extends HttpServlet {
 			byte[] mediaData = IOUtils.toByteArray(url.openStream());
 			for (int i = 0; i < sampleNumber.length; i++) {
 				System.out.print(sampleNumber[i] + "   ");
-				byte[] image = getSampleData(sampleNumber[i], sampleTableBox, mediaData);
+				byte[] image = getSampleData(sampleNumber[i], 
+						sampleTableBox, mediaData);
 				System.out.println(image.length);
 
-				AppEngineFile file = fileService.createNewBlobFile("application/zip");
+				AppEngineFile file = 
+						fileService.createNewBlobFile("application/zip");
 				boolean lock = true;
-				FileWriteChannel writeChannel = fileService.openWriteChannel(file, lock);
+				FileWriteChannel writeChannel = 
+						fileService.openWriteChannel(file, lock);
 
 
 				writeChannel.write(ByteBuffer.wrap(image, 0, image.length));
 				writeChannel.closeFinally();
-				imageUriMap.put("I-Frame " + sampleNumber[i], file.getFullPath());
+				imageUriMap.put("I-Frame " + sampleNumber[i], 
+						file.getFullPath());
 			}
 			System.out.println("\n");
 
@@ -107,28 +113,46 @@ public class MP4ParserServlet extends HttpServlet {
 		PrintWriter pw = resp.getWriter();
 		pw.println("List of Iframes: " );
 
-		Set<java.util.Map.Entry<String, String>> imageSet = imageUriMap.entrySet();
+		Set<java.util.Map.Entry<String, String>> imageSet = 
+				imageUriMap.entrySet();
 		for (java.util.Map.Entry<String, String> image : imageSet) {
 			pw.println("   " + image.getKey() + ": " + image.getValue());
 		}
 		pw.close();
 	}
 
+	
+	/**
+	 * Get VideoTrackBox form movieBox
+	 * @param movieBox movieBox to get the track box
+	 * @return TrackBox
+	 */
 	public TrackBox getVideoTrackBox(MovieBox movieBox) {
-		List<TrackBox> trackBoxList = movieBox.getBoxes(TrackBox.class);
+		List<TrackBox> trackBoxList = 
+				movieBox.getBoxes(TrackBox.class);
 		for (TrackBox trackBox : trackBoxList) {
-			TrackHeaderBox trackHeaderBox = trackBox.getTrackHeaderBox();
+			TrackHeaderBox trackHeaderBox = 
+					trackBox.getTrackHeaderBox();
 			// Audio Tracks don't have width and weight
-			if ((trackHeaderBox.getWidth() > 0) && (trackHeaderBox.getHeight() > 0)) {
+			if ((trackHeaderBox.getWidth() > 0) 
+					&& (trackHeaderBox.getHeight() > 0)) {
 				return trackBox;
 			}
 		}
 		return null;
 	}
 
-	public byte[] getSampleData(long sampleIndex, SampleTableBox sampleTableBox, byte[] mediaData) {
+	/**
+	 * Get sampleData of a sample checkBox
+	 * @param sampleIndex
+	 * @param sampleTableBox
+	 * @param filePath
+	 * @return
+	 */
+	public byte[] getSampleData(long sampleIndex, 
+			SampleTableBox sampleTableBox, byte[] mediaData) {
 
-		ChunkData chunkData = getChunkDataOf(sampleIndex, sampleTableBox);
+		ChunkInfo chunkData = getChunkDataOf(sampleIndex, sampleTableBox);
 		long offset = chunkData.getOffset();
 		long currentSample = chunkData.getFirtSample();
 
@@ -145,6 +169,12 @@ public class MP4ParserServlet extends HttpServlet {
 
 	}
 
+	/**
+	 * Get size of a specific sample
+	 * @param sampleIndex
+	 * @param sampleTableBox
+	 * @return
+	 */
 	public long getSampleSize(long sampleIndex, SampleTableBox sampleTableBox) {
 		long sampleQty = getSampleQuantity(sampleTableBox);
 		if ((sampleIndex > sampleQty) || (sampleIndex < 0)) {
@@ -158,21 +188,29 @@ public class MP4ParserServlet extends HttpServlet {
 		return sampleSizeBox.getSampleSizeAtIndex((int)sampleIndex);
 	}
 
-	public ChunkData getChunkDataOf(long sampleIndex, SampleTableBox sampleTableBox) {
+	/**
+	 * Get chunkData of a specific sample
+	 * @param sampleIndex
+	 * @param sampleTableBox
+	 * @return
+	 */
+	public ChunkInfo getChunkDataOf(long sampleIndex, 
+			SampleTableBox sampleTableBox) {
 		long sampleQty = getSampleQuantity(sampleTableBox);
 		if ((sampleIndex > sampleQty) || (sampleIndex < 0)) {
 			return null;
 		}
 
 		// Get list of chunk group
-		SampleToChunkBox sampleToChunkBox = sampleTableBox.getSampleToChunkBox();
+		SampleToChunkBox sampleToChunkBox = 
+				sampleTableBox.getSampleToChunkBox();
 		List<Entry> chunkGroupList = sampleToChunkBox.getEntries();
 
 		// first and last sample in each chunk
 		int currentChunk = 1; // 1-based system
 		long firstSampleIndex = 1; // 1-based system
 
-		ChunkData chunkData = new ChunkData();
+		ChunkInfo chunkData = new ChunkInfo();
 		for (int i = 0; i < chunkGroupList.size() - 1; i++) {
 			Entry chunkGroup = chunkGroupList.get(i);
 			Entry nextChunkGroup = chunkGroupList.get(i+1);
@@ -189,9 +227,11 @@ public class MP4ParserServlet extends HttpServlet {
 					chunkData.setIndex(currentChunk);
 					chunkData.setFirtSample(firstSampleIndex);
 
-					ChunkOffsetBox chunkOffsetBox = sampleTableBox.getChunkOffsetBox();
+					ChunkOffsetBox chunkOffsetBox = 
+							sampleTableBox.getChunkOffsetBox();
 					// currentChunk - 1 : convert from 1-based to 0-based
-					long chunkOffset = (chunkOffsetBox.getChunkOffsets())[currentChunk - 1]; 
+					long chunkOffset = 
+							(chunkOffsetBox.getChunkOffsets())[currentChunk -1]; 
 					chunkData.setOffset(chunkOffset);
 
 					return chunkData;
@@ -213,6 +253,11 @@ public class MP4ParserServlet extends HttpServlet {
 		return chunkData;
 	}
 
+	/**
+	 * Get chunk Quantity
+	 * @param sampleTableBox sampleTableBox in which we want to get chunk qty.
+	 * @return chunk quantity
+	 */
 	public long getChunkQuantity(SampleTableBox sampleTableBox) {
 		ChunkOffsetBox chunkOffsetBox = sampleTableBox.getChunkOffsetBox();
 		long chunkQty = 0;
@@ -228,11 +273,21 @@ public class MP4ParserServlet extends HttpServlet {
 		return chunkQty;
 	}
 
+	/**
+	 * Get sample Quantity
+	 * @param sampleTableBox sampleTableBox in which we want to get sample qty
+	 * @return sample quantity
+	 */
 	public long getSampleQuantity(SampleTableBox sampleTableBox) {		
 		SampleSizeBox sampleSizeBox = sampleTableBox.getSampleSizeBox();
 		return sampleSizeBox.getSampleCount();
 	}
 
+	/**
+	 * Align String, used by format(String input) function
+	 * @param indent number of indents to add.
+	 * @return formated String.
+	 */
 	private String createSpace(int indent) {
 		String output = "";
 		for (int i = 0; i < indent; i++) {
@@ -241,6 +296,11 @@ public class MP4ParserServlet extends HttpServlet {
 		return output;
 	}
 
+	/**
+	 * Format String, used for debug.
+	 * @param input string to format
+	 * @return formated String.
+	 */
 	private String format(String input) {
 		if ("" == input || null == input) 
 			return "";

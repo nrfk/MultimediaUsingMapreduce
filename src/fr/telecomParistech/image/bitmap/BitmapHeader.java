@@ -8,11 +8,20 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
-
+/**
+ * Bitmap Header
+ * @author xuan-hoa.nguyen@telecom-paristech.fr
+ *
+ */
 public class BitmapHeader {
 	private static final Logger log = 
 			Logger.getLogger(BitmapHeader.class.getName());
-	// Predefined attributes
+	
+	/**
+	 * An enum class contains all attributes of bitmap header.
+	 * @author xuan-hoa.nguyen@telecom-paristech.fr
+	 *
+	 */
 	public enum Attribute {
 
 		// Bitmap File Header: 		{Offset, Size}
@@ -53,24 +62,46 @@ public class BitmapHeader {
 		private final int offset;
 		private final int length;
 
-
+		/**
+		 * Private constructor, used to create some pre-defined attributes
+		 * @param offset attritube's offset (to the start of file)
+		 * @param length length of the attribute
+		 */
 		private Attribute(int offset, int length) {
 			this.offset = offset;
 			this.length = length;
 		}
 
+		/**
+		 * Get length of the attribute.
+		 * @param radix radix-based (Hex, Oct, Dec).
+		 * @return length in radix-based.
+		 */
 		public String getLength(Radix radix) {
 			return ConvertUtility.getNumber(length,radix);
 		}
 
+		/**
+		 * Get length of attribute (integer value)
+		 * @return length of attribute 
+		 */
 		public int getLength() {
 			return length;
 		}
 
+		/**
+		 * Get offset of attribute.
+		 * @param radix
+		 * @return offset of attribute in radix-based.
+		 */
 		public String getOffset(Radix radix) {
 			return ConvertUtility.getNumber(offset, radix);
 		}
 
+		/**
+		 * Get offset of attribute.
+		 * @return offset of attribute.
+		 */
 		public int getOffset() {
 			return offset;
 		}
@@ -79,11 +110,19 @@ public class BitmapHeader {
 	private Map<Integer, byte[]> attributes;
 	private int headerLength;
 
+	/**
+	 * Create a new BitmapHeader.
+	 */
 	public BitmapHeader() {
 		attributes = new TreeMap<Integer, byte[]>();
 		headerLength = 0;
 	}
 
+	/**
+	 * Set attribute for the bitmap header.
+	 * @param a
+	 * @param value
+	 */
 	public void setAttribute(Attribute a, byte[] value) {
 		// Save value, use it offset as key
 		attributes.put(a.getOffset(), value);
@@ -101,11 +140,20 @@ public class BitmapHeader {
 		headerLength += value.length;
 	}
 
+	/**
+	 * Get byte array of a specific attribute
+	 * @param a attribute.
+	 * @return byte array of this attribute
+	 */
 	public byte[] getAttributeValue(Attribute a) {
 		Integer key = a.getOffset();
 		return attributes.get(key); 
 	}
 
+	/**
+	 * Dump this header to an array of bytes
+	 * @return byte array contains the header.
+	 */
 	public byte[] dump() {
 		byte[] bytes = new byte[headerLength];
 

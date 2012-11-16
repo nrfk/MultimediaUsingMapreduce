@@ -7,26 +7,44 @@ import java.io.InputStream;
 
 import fr.telecomParistech.image.bitmap.BitmapHeader.Attribute;
 
-
-
+/**
+ * Bitmap Image class
+ * @author xuan-hoa.nguyen@telecom-paristech.fr
+ *
+ */
 public class BitmapImage {
 	private BitmapHeader bitmapHeader;
 	private byte[] data;
 
+	/**
+	 * Create new BitmapImage
+	 */
 	public BitmapImage() {
 		this.bitmapHeader = new BitmapHeader();
 		data = null;
 	}
 	
+	/**
+	 * Set data for this BitmapImage
+	 * @param data data to set.
+	 */
 	public void setData(byte[] data) {
 		this.data = data;
 		
 	}
 	
+	/**
+	 * Set header for this BitmapImage
+	 * @param bitmapHeader
+	 */
 	public void setBitMapHeader(BitmapHeader bitmapHeader) {
 		this.bitmapHeader = bitmapHeader;
 	}
 	
+	/**
+	 * Create image in form of bytes from this bitmap object
+	 * @return array of bytes contains the image.
+	 */
 	public byte[] createImage() {
 		byte[] header = bitmapHeader.dump();
 		int imageSize = header.length + data.length;
@@ -36,6 +54,8 @@ public class BitmapImage {
 		return image;
 	}
 	
+	
+	// Used for test.
 	public static void main(String[] args) {
 		
 		byte[] bytes;

@@ -1,4 +1,4 @@
-package fr.telecomParistech.dash.util;
+package fr.telecomParistech.mp4parser;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
