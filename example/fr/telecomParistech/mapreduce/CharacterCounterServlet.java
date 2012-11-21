@@ -1,4 +1,4 @@
-package fr.telecomParistech.example.mapreduce;
+package fr.telecomParistech.mapreduce;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -24,25 +24,30 @@ import com.google.appengine.tools.mapreduce.outputs.InMemoryOutput;
 
 @SuppressWarnings("serial")
 public class CharacterCounterServlet extends HttpServlet {
-	private static final Logger log = Logger.getLogger(CharacterCounterServlet.class.getName());
+	private static final Logger log = 
+			Logger.getLogger(CharacterCounterServlet.class.getName());
 
 	//private static final boolean USE_BACKENDS = true;
 	private static final boolean USE_BACKENDS = false;
 
 
-	private String getUrlBase(HttpServletRequest req) throws MalformedURLException {
+	private String getUrlBase(HttpServletRequest req) 
+			throws MalformedURLException {
 		URL requestUrl = new URL(req.getRequestURL().toString());
-		String portString = requestUrl.getPort() == -1 ? "" : ":" + requestUrl.getPort();
-		return requestUrl.getProtocol() + "://" + requestUrl.getHost() + portString + "/";
+		String portString = 
+				requestUrl.getPort() == -1 ? "" : ":" + requestUrl.getPort();
+		return requestUrl.getProtocol() + 
+				"://" + requestUrl.getHost() + portString + "/";
 	}
 
 	private String getPipelineStatusUrl(String urlBase, String pipelineId) {
 		return urlBase + "_ah/pipeline/status.html?root=" + pipelineId;
 	}
 
-	private void redirectToPipelineStatus(HttpServletRequest req, HttpServletResponse resp,
-			String pipelineId) throws IOException {
-		String destinationUrl = getPipelineStatusUrl(getUrlBase(req), pipelineId);
+	private void redirectToPipelineStatus(HttpServletRequest req, 
+			HttpServletResponse resp, String pipelineId) throws IOException {
+		String destinationUrl = 
+				getPipelineStatusUrl(getUrlBase(req), pipelineId);
 		log.info("Redirecting to " + destinationUrl);
 		resp.sendRedirect(destinationUrl);
 	}
@@ -62,7 +67,8 @@ public class CharacterCounterServlet extends HttpServlet {
 			throws ServletException, IOException {
 		// TODO Auto-generated method stub
 		PrintWriter printWriter = resp.getWriter();
-		printWriter.println("<H1> Hello, I'm character counter servlet :) </H1>");
+		printWriter.println(
+				"<H1> Hello, I'm character counter servlet :) </H1>");
 		printWriter.close();
 	}
 
@@ -75,7 +81,8 @@ public class CharacterCounterServlet extends HttpServlet {
 			return;
 		}
 
-		DatastoreService dataStore = DatastoreServiceFactory.getDatastoreService();
+		DatastoreService dataStore = 
+				DatastoreServiceFactory.getDatastoreService();
 		String[] words = text.split("[^a-zA-Z]");
 		for (String word : words) {
 			Entity e = new Entity("Word");
@@ -96,7 +103,8 @@ public class CharacterCounterServlet extends HttpServlet {
 						Marshallers.getStringMarshaller(),
 						Marshallers.getLongMarshaller(),
 						new CountReducer(),
-						new InMemoryOutput<KeyValue<String, Long>>(reduceShardCount)),
+						new InMemoryOutput<KeyValue<String, Long>>(
+								reduceShardCount)),
 						getSettings());
 	}
 

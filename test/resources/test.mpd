@@ -1,0 +1,20 @@
+<MPD type="static" xmlns="urn:mpeg:DASH:schema:MPD:2011" profiles="urn:mpeg:dash:profile:full:2011" minBufferTime="PT1.5S" mediaPresentationDuration="PT0H0M24.46S">
+ <ProgramInformation moreInformationURL="http://gpac.sourceforge.net">
+  <Title>Media Presentation Description for file count-video.mp4 generated with GPAC </Title>
+ </ProgramInformation>
+ <Period start="PT0S" duration="PT0H0M24.46S">
+  <AdaptationSet>
+   <ContentComponent id="1" contentType="video"/>
+   <Representation id="1" mimeType="video/mp4" codecs="avc1.64001f" width="640" height="480" startWithSAP="false" bandwidth="93386">
+    <SegmentList timescale="1000" duration="5492">
+     <Initialization sourceURL="count-video_dash.mp4"/>
+     <SegmentURL media="seg1.m4s"/>
+     <SegmentURL media="seg2.m4s"/>
+     <SegmentURL media="seg3.m4s"/>
+     <SegmentURL media="seg4.m4s"/>
+     <SegmentURL media="seg5.m4s"/>
+    </SegmentList>
+   </Representation>
+  </AdaptationSet>
+ </Period>
+</MPD>

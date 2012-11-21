@@ -1,7 +1,6 @@
-package fr.telecomParistech.mp4parser;
+package fr.telecomParistech.dash.mpd;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -16,21 +15,14 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 
-import fr.telecomParistech.dash.mpd.AdaptationSet;
-import fr.telecomParistech.dash.mpd.InitSegment;
-import fr.telecomParistech.dash.mpd.MPD;
-import fr.telecomParistech.dash.mpd.MediaSegment;
-import fr.telecomParistech.dash.mpd.Period;
-import fr.telecomParistech.dash.mpd.Representation;
-import fr.telecomParistech.dash.mpd.SegmentList;
-
 /**
  * Utility class, used to parse mpd file
  * @author xuan-hoa.nguyen@telecom-paristech.fr
  *
  */
 public class MPDParser {
-	private static final Logger log = Logger.getLogger(MPDParser.class.getName());
+	private static final Logger LOGGER = 
+			Logger.getLogger(MPDParser.class.getName());
 	
 	/**
 	 * Create document from an input stream.
@@ -46,7 +38,7 @@ public class MPDParser {
 			doc.getDocumentElement().normalize();
 			return doc;
 		} catch (Exception e) {
-			log.severe("Cannot create document");
+			LOGGER.severe("Cannot create document");
 			e.printStackTrace();
 			System.err.println("Cannot create document");
 			System.exit(1);
@@ -71,7 +63,7 @@ public class MPDParser {
 			doc.getDocumentElement().normalize();
 			return doc;
 		} catch (Exception e) {
-			log.severe("Cannot create document");
+			LOGGER.severe("Cannot create document");
 			e.printStackTrace();
 			System.err.println("Cannot create document");
 			System.exit(1);
@@ -90,7 +82,7 @@ public class MPDParser {
 			Element eMpd = doc.getDocumentElement();
 			// Get list of Period
 			NodeList nlPeriod = doc.getElementsByTagName("Period");
-			log.info("---------@ Period tag -----------");
+			LOGGER.info("---------@ Period tag -----------");
 			
 			// Pre-init variable for later use
 			InitSegment initSegment = null;
@@ -107,9 +99,10 @@ public class MPDParser {
 				if (ePeriod == null) continue;
 				
 				// Get list of AdaptationSet
-				NodeList nlAdaptationSet = ePeriod.getElementsByTagName("AdaptationSet");
+				NodeList nlAdaptationSet = 
+						ePeriod.getElementsByTagName("AdaptationSet");
 				
-				log.info("---------@ AdaptationSet tag-----------");
+				LOGGER.info("---------@ AdaptationSet tag-----------");
 				
 				// For each AdaptationSet.
 				for (int j = 0; j < nlAdaptationSet.getLength(); j++) {
@@ -117,66 +110,95 @@ public class MPDParser {
 					if (eAdaptationSet == null) continue;
 					
 					// Get List of Representation
-					NodeList nlRepresentation = eAdaptationSet.getElementsByTagName("Representation");
-					log.info("---------Representation List-----------");
+					NodeList nlRepresentation = eAdaptationSet
+							.getElementsByTagName("Representation");
+					LOGGER.info("---------Representation List-----------");
 					
 					// For each Representation
 					for (int k = 0; k < nlRepresentation.getLength(); k++) {
-						Element eRepresentation = (Element) nlRepresentation.item(k);
-						if(eRepresentation == null) continue;
+						Element eRepresentation = 
+								(Element) nlRepresentation.item(k);
+						if(eRepresentation == null) {
+							continue;
+						}
 						
 						// Get SegmentList
-						Element eSegmentList = (Element) eRepresentation.getElementsByTagName("SegmentList").item(0);
-						if (eSegmentList == null) continue; // A representation must have a segment list
+						Element eSegmentList = (Element) eRepresentation
+								.getElementsByTagName("SegmentList").item(0);
+						// A representation must have a segment list
+						if (eSegmentList == null) {
+							continue; 
+						}
 						
 						// In Segment list:
 						// a. Get InitSegment
-						Element eInitSegment = (Element) eSegmentList.getElementsByTagName("Initialization").item(0);
-						if (eInitSegment == null) continue; // A segment list must have an init segment
-						initSegment = new InitSegment(eInitSegment.getAttribute("sourceURL"));
+						Element eInitSegment = (Element) eSegmentList
+								.getElementsByTagName("Initialization").item(0);
+						// A segment list must have an init segment
+						if (eInitSegment == null) continue; 
+						initSegment = new InitSegment(
+								eInitSegment.getAttribute("sourceURL"));
 						
 						// b. Get list of SegmentURL
-						NodeList nlSegmentUrl = eSegmentList.getElementsByTagName("SegmentURL");
-						if (nlSegmentUrl == null) continue; // And some media segments
+						NodeList nlSegmentUrl = 
+								eSegmentList.getElementsByTagName("SegmentURL");
+						// And some media segments
+						if (nlSegmentUrl == null) {
+							continue; 
+						}
 						
 						// Create new SegmentList
 						segmentList = new SegmentList();
 						for (int m = 0; m < nlSegmentUrl.getLength(); m ++) {
 							// c. Get SegmentURL
-							Element eSegmentUrl = (Element) nlSegmentUrl.item(m);
+							Element eSegmentUrl = (Element)nlSegmentUrl.item(m);
 							if (eSegmentUrl == null) continue;
 							
 							String media = eSegmentUrl.getAttribute("media");
-							// We'll create a new MediaSegment whose id started from 1 instead of 0.
+							// We'll create a new MediaSegment whose id started
+							// from 1 instead of 0.
 							mediaSegment = new MediaSegment(m + 1, media);
 							segmentList.addMediaSegment(mediaSegment);
 						}
 						
 						segmentList.setInitSegment(initSegment);
-						segmentList.addAttribute("duration", eSegmentList.getAttribute("duration"));
+						segmentList.addAttribute("duration", 
+								eSegmentList.getAttribute("duration"));
 						
 						// Create new representation
 						representation = new Representation(k, segmentList);
-						representation.addAttribute("mimeType", eRepresentation.getAttribute("mimeType"));
-						representation.addAttribute("codecs", eRepresentation.getAttribute("codecs"));
-						representation.addAttribute("width", eRepresentation.getAttribute("width"));
-						representation.addAttribute("height", eRepresentation.getAttribute("height"));
-						representation.addAttribute("bandwidth", eRepresentation.getAttribute("bandwidth"));
+						representation.addAttribute("mimeType", 
+								eRepresentation.getAttribute("mimeType"));
+						
+						representation.addAttribute("codecs", 
+								eRepresentation.getAttribute("codecs"));
+						
+						representation.addAttribute("width", 
+								eRepresentation.getAttribute("width"));
+						
+						representation.addAttribute("height", 
+								eRepresentation.getAttribute("height"));
+						
+						representation.addAttribute("bandwidth", 
+								eRepresentation.getAttribute("bandwidth"));
 					}
 					
 					// Create new AdaptationSet
 					adaptationSet = new AdaptationSet(j);
 					adaptationSet.addRepresentation(representation);
 					
-					Element eContentComponent = (Element) eAdaptationSet.getElementsByTagName("ContentComponent").item(0);
-					adaptationSet.addAttribute("contentType", eContentComponent.getAttribute("contentType"));
+					Element eContentComponent = (Element) eAdaptationSet
+							.getElementsByTagName("ContentComponent").item(0);
+					adaptationSet.addAttribute("contentType", 
+							eContentComponent.getAttribute("contentType"));
 					
 				}
 				
 				period = new Period(i);
 				period.addAdaptationSet(adaptationSet);
 				period.addAttribute("start", ePeriod.getAttribute("start"));
-				period.addAttribute("duration", ePeriod.getAttribute("duration"));
+				period.addAttribute("duration", 
+						ePeriod.getAttribute("duration"));
 
 			}
 			
@@ -204,16 +226,17 @@ public class MPDParser {
 		return mpdFile;
 	}
 
-	private static String getDirectoryUrl(String fileUrl) {
-		int delimIndex = fileUrl.lastIndexOf('/');
-		String dirUrl = fileUrl.substring(0, delimIndex);
+	private static String getEnclosingDirectoryOf(String filePath) {
+		int delimIndex = filePath.lastIndexOf('/');
+		String dirUrl = filePath.substring(0, delimIndex);
 		return dirUrl;
 	}
 	
 	public static void main(String[] args) throws Exception{
-//		MPDParser.parseMPD("http://localhost:8888/resources/count-video_dash.mpd");
-		URL url = new URL("http://localhost:8888/resources/count-video_dash.mpd"); 
-		BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
+		URL url = new URL(
+				"http://localhost:8888/resources/count-video_dash.mpd"); 
+		BufferedReader reader = 
+				new BufferedReader(new InputStreamReader(url.openStream()));
 		String xml = "";
 		String line = "";
 		
@@ -221,9 +244,10 @@ public class MPDParser {
 			xml += line;
 		}
 
-//		System.out.println(xml);
+		System.out.println(xml);
 		
-		String dirUrl = getDirectoryUrl("http://localhost:8888/resources/count-video_dash.mpd");
+		String dirUrl = getEnclosingDirectoryOf(
+				"http://localhost:8888/resources/count-video_dash.mpd");
 		System.out.println(dirUrl);
 		
 //		Document doc = DocumentBuilderFactory

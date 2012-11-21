@@ -21,9 +21,11 @@ public class InverseSentenceExample {
 			List<FutureValue<String>> inversedWords = 
 					new LinkedList<FutureValue<String>>();
 			for (String word : words) {
-				inversedWords.add(futureCall(new InverseWordJob(), immediate(word)));
+				inversedWords.add(
+						futureCall(new InverseWordJob(), immediate(word)));
 			}
-			return futureCall(new InverseSentenceJob(), futureList(inversedWords));
+			return futureCall(new InverseSentenceJob(), 
+					futureList(inversedWords));
 		}
 		
 	}

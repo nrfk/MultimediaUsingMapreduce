@@ -1,4 +1,4 @@
-package fr.telecomParistech.example.mapreduce;
+package fr.telecomParistech.mapreduce;
 
 import java.util.Date;
 import java.util.logging.Logger;
@@ -11,8 +11,10 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.tools.mapreduce.Mapper;
 
 @SuppressWarnings("serial")
-public class NaiveToLowercaseMapper extends Mapper<Entity, NullWriter, NullWriter> {
-	private static final Logger log = Logger.getLogger(NaiveToLowercaseMapper.class.getName());
+public class NaiveToLowercaseMapper 
+		extends Mapper<Entity, NullWriter, NullWriter> {
+	private static final Logger log = 
+			Logger.getLogger(NaiveToLowercaseMapper.class.getName());
 	private DatastoreService datastore;
 	
 	@Override

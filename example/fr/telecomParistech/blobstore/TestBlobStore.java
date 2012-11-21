@@ -1,4 +1,4 @@
-package fr.telecomParistech.example.blobstore;
+package fr.telecomParistech.blobstore;
 
 import java.io.BufferedReader;
 import java.io.IOException;

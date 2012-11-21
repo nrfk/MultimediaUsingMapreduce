@@ -29,11 +29,11 @@ import com.google.appengine.api.files.FileWriteChannel;
 import fr.telecomParistech.dash.mpd.AdaptationSet;
 import fr.telecomParistech.dash.mpd.InitSegment;
 import fr.telecomParistech.dash.mpd.MPD;
+import fr.telecomParistech.dash.mpd.MPDParser;
 import fr.telecomParistech.dash.mpd.MediaSegment;
 import fr.telecomParistech.dash.mpd.Period;
 import fr.telecomParistech.dash.mpd.Representation;
 import fr.telecomParistech.dash.mpd.SegmentList;
-import fr.telecomParistech.mp4parser.MPDParser;
 
 /**
  * MpdParserServlet is used to parse .mpd file coming from client side
@@ -131,7 +131,8 @@ public class MpdParserServlet extends HttpServlet {
 					// Create a Blob Store for each init segment of 
 					// a specific representation. Use Byte ArrayOutputStream
 					// to avoid datastore to reduce the number of read operation
-					// http://stackoverflow.com/questions/8052886/reduce-datastore-read-operation
+					// http://stackoverflow.com/questions/8052886
+					// /reduce-datastore-read-operation
 					ByteArrayOutputStream byteArrayOut = 
 							new ByteArrayOutputStream();
 					AppEngineFile file = 

@@ -1,4 +1,4 @@
-package fr.telecomParistech.example.mapreduce;
+package fr.telecomParistech.mapreduce;
 
 import com.google.appengine.tools.mapreduce.KeyValue;
 import com.google.appengine.tools.mapreduce.Reducer;
@@ -10,7 +10,8 @@ class CountReducer extends Reducer<String, Long, KeyValue<String, Long>> {
 	private static final long serialVersionUID = 1316637485625852869L;
 
 	@SuppressWarnings("unused")
-	private static final Logger log = Logger.getLogger(CountReducer.class.getName());
+	private static final Logger log = 
+			Logger.getLogger(CountReducer.class.getName());
 
 	public CountReducer() {
 	}

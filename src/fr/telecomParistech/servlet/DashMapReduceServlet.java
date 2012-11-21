@@ -1,6 +1,7 @@
 package fr.telecomParistech.servlet;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.logging.Level;
@@ -14,14 +15,17 @@ import org.apache.commons.configuration.XMLConfiguration;
 
 import com.google.appengine.demos.mapreduce.entitycount.CountEntityServlet;
 import com.google.appengine.tools.mapreduce.MapReduceJob;
+import com.google.appengine.tools.mapreduce.MapReduceResult;
 import com.google.appengine.tools.mapreduce.MapReduceSettings;
 import com.google.appengine.tools.mapreduce.MapReduceSpecification;
 import com.google.appengine.tools.mapreduce.Marshallers;
 import com.google.appengine.tools.mapreduce.inputs.DatastoreInput;
 import com.google.appengine.tools.mapreduce.outputs.InMemoryOutput;
 import com.google.appengine.tools.pipeline.JobInfo;
+import com.google.appengine.tools.pipeline.JobInfo.State;
 import com.google.appengine.tools.pipeline.PipelineService;
 import com.google.appengine.tools.pipeline.PipelineServiceFactory;
+import com.google.common.collect.ImmutableList;
 
 import fr.telecomParistech.mapreduce.DashMapper;
 import fr.telecomParistech.mapreduce.DashReducer;
@@ -132,13 +136,33 @@ public class DashMapReduceServlet extends HttpServlet {
 		try {
 			XMLConfiguration config = 
 					new XMLConfiguration("WEB-INF/dash-mapreduce-config.xml");
-			String pipelineId = 
-					startDashProcessingJob(config.getInt("mapreduce.map-task",3), 
-										   config.getInt("mapreduce.reduce-task",1));
+			String pipelineId = startDashProcessingJob(
+					config.getInt("mapreduce.map-task",3), 
+					config.getInt("mapreduce.reduce-task",1));
 			JobInfo jobInfo = pipelineService.getJobInfo(pipelineId);
 			
 			
-			redirectToPipelineStatus(req, resp, pipelineId);
+//			redirectToPipelineStatus(req, resp, pipelineId);
+			
+			while (jobInfo.getJobState() != State.COMPLETED_SUCCESSFULLY) {
+				System.out.println(jobInfo.getJobState());
+				jobInfo = pipelineService.getJobInfo(pipelineId);
+			}
+			
+//			Object result = jobInfo.getOutput();
+			MapReduceResult<ImmutableList<ImmutableList<String>>> result =  
+					(MapReduceResult<ImmutableList<ImmutableList<String>>>) 
+							jobInfo.getOutput();
+			
+			String xml = result
+					.getOutputResult()
+					.get(0)
+					.get(0);
+			
+			PrintWriter pw = resp.getWriter();
+			pw.write(xml);
+			pw.write("************************");
+			pw.close();
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

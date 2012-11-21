@@ -5,7 +5,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -28,7 +27,6 @@ import com.coremedia.iso.boxes.SyncSampleBox;
 import com.coremedia.iso.boxes.TrackBox;
 import com.coremedia.iso.boxes.h264.AvcConfigurationBox;
 import com.coremedia.iso.boxes.sampleentry.SampleEntry;
-import com.google.common.util.concurrent.ExecutionError;
 
 import fr.telecomParistech.image.bitmap.ConvertUtility;
 

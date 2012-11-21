@@ -31,9 +31,32 @@ public class ConvertUtility {
 	 * @return the equivalent integer of this byte array.
 	 */
 	public static int byteArrayToInteger(byte[] bytes, ByteOrder endian) {
+		if (bytes.length > 4) {
+			return -1;
+		}
+		
 		ByteBuffer byteBuffer = ByteBuffer.allocate(INT_SIZE);
 		byteBuffer.order(endian);
-		byteBuffer.put(bytes);
+		
+		// Convert so that 00 19 (big endian) becomes 00 00 00 19
+		// and 00 19 (little endian) becomes 00 19 00 00
+		
+		int length = bytes.length;
+		if (endian == ByteOrder.BIG_ENDIAN) {
+			// Padding
+			for (int i = length; i < INT_SIZE; i++) {
+				byteBuffer.put( (byte) 0x00 );
+			}
+			// add real value
+			byteBuffer.put(bytes);
+		} else { // little endian
+			byteBuffer.put(bytes);
+			// Padding
+			for (int i = length; i < INT_SIZE; i++) {
+				byteBuffer.put( (byte) 0x00 );
+			}
+		}
+		
 		byteBuffer.rewind();
 		int result = byteBuffer.getInt();
 		return result;
@@ -83,32 +106,5 @@ public class ConvertUtility {
 			strBuffer.append(hex + " ");
 		}
 		return strBuffer.toString();
-	}
-
-	// Test
-	public static void main(String[] args) {
-		int number = 0x0f1a6674;
-		byte[] bytes = integerToByteArray(number, ByteOrder.BIG_ENDIAN);
-		
-		for (int i = 0; i < bytes.length; i++) {
-			System.out.print(getNumber(bytes[i], Radix.HEX) + "   ");
-		}
-		
-		System.out.println("\n");
-		
-		bytes = integerToByteArray(number, ByteOrder.LITTLE_ENDIAN);
-		
-		for (int i = 0; i < bytes.length; i++) {
-			System.out.print(getNumber(bytes[i], Radix.HEX) + "   ");
-		}
-		
-		System.out.println("\n");
-		
-		
-		byte[] bigEndian = {0x00, 0x0f, 0x42, 0x40};
-		System.out.println(byteArrayToInteger(bigEndian, ByteOrder.BIG_ENDIAN));
-		
-		byte[] littleEndian = {0x40, 0x42, 0x0f, 0x00};
-		System.out.println(byteArrayToInteger(littleEndian, ByteOrder.LITTLE_ENDIAN));
 	}
 }

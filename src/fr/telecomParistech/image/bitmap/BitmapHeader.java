@@ -14,7 +14,7 @@ import java.util.logging.Logger;
  *
  */
 public class BitmapHeader {
-	private static final Logger log = 
+	private static final Logger LOGGER = 
 			Logger.getLogger(BitmapHeader.class.getName());
 	
 	/**
@@ -135,7 +135,7 @@ public class BitmapHeader {
 			}
 			strValue += hex + " ";
 		}
-		log.info(Integer.toHexString(headerLength) 
+		LOGGER.finest(Integer.toHexString(headerLength) 
 				+ ": " + a + " 		:" + strValue);
 		headerLength += value.length;
 	}
@@ -162,8 +162,8 @@ public class BitmapHeader {
 				sizeInByte, 
 				ByteOrder.LITTLE_ENDIAN);
 
-		log.info("Length Att: " + lengAtt);
-		log.info("Data started at : "  + headerLength);
+		LOGGER.finest("Length Att: " + lengAtt);
+		LOGGER.finest("Data started at : "  + headerLength);
 		int offset = 0;
 
 		Set<Entry<Integer, byte[]>> entrySet = attributes.entrySet();
