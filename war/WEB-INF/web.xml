@@ -52,7 +52,7 @@
 	<servlet>
     	<servlet-name>CharacterCounterServlet</servlet-name>
     	<servlet-class>
-    	  fr.telecomParistech.example.mapreduce.CharacterCounterServlet
+    	  fr.telecomParistech.mapreduce.CharacterCounterServlet
    	    </servlet-class>
   	</servlet>
   	<servlet-mapping>
@@ -64,7 +64,7 @@
 	<servlet>
     	<servlet-name>Upload</servlet-name>
     	<servlet-class>
-    	  fr.telecomParistech.example.blobstore.Upload
+    	  fr.telecomParistech.blobstore.Upload
    	    </servlet-class>
   	</servlet>
   	<servlet-mapping>
@@ -76,7 +76,7 @@
   	<servlet>
     	<servlet-name>TestBlobStore</servlet-name>
     	<servlet-class>
-    	  fr.telecomParistech.example.blobstore.TestBlobStore
+    	  fr.telecomParistech.blobstore.TestBlobStore
    	    </servlet-class>
   	</servlet>
   	<servlet-mapping>
@@ -115,7 +115,7 @@
   	<servlet>
     	<servlet-name>Serve</servlet-name>
     	<servlet-class>
-    	  fr.telecomParistech.example.blobstore.Serve
+    	  fr.telecomParistech.blobstore.Serve
    	    </servlet-class>
   	</servlet>
   	<servlet-mapping>

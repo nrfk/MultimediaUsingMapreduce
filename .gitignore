@@ -2,4 +2,5 @@ war/WEB-INF/classes
 war/WEB-INF/appengine-generated/
 war/resources
 .svn/
-src/nxhoaf
+dev/*
+
