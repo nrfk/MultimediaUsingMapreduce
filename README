@@ -1,6 +1,6 @@
 MUMA (Multimedia Using MApreduce) is a project aimed to apply the Map Reduce programming model to multimedia data processing.
 
-The project run in Google App Engine platform. It's composed of several main parts:
+The project runs in Google App Engine platform. It's composed of several main parts:
 - Example
   + Pipeline example.
   + Mapreduce example.

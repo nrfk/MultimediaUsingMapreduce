@@ -50,7 +50,8 @@ public class DashMapper extends Mapper<Entity, String, KeyValue<Long, String>>{
 		
 		try {
 			// Create Blob Store for each file
-			AppEngineFile file = fileService.createNewBlobFile("application/zip");
+			AppEngineFile file = 
+					fileService.createNewBlobFile("application/zip");
 			// Create writer to write to it
 			boolean lock = true;
 			FileWriteChannel writeChannel = 
@@ -62,7 +63,8 @@ public class DashMapper extends Mapper<Entity, String, KeyValue<Long, String>>{
 			ByteArrayOutputStream byteArrayOut = new ByteArrayOutputStream();
 			
 			// - Write the Init Segment	
-			BlobKey blobKey = fileService.getBlobKey(new AppEngineFile(initSegUrl));
+			BlobKey blobKey = 
+					fileService.getBlobKey(new AppEngineFile(initSegUrl));
 			buffer = blobstoreService.fetchData(blobKey, 0, initSegSize);
 			byteArrayOut.write(buffer, 0, buffer.length);
 			
@@ -72,7 +74,8 @@ public class DashMapper extends Mapper<Entity, String, KeyValue<Long, String>>{
 			URL url = new URL(mediaSegUrl);
 			buffer = new byte[4096];
 			int n;
-			BufferedInputStream bufInput = new BufferedInputStream(url.openStream());
+			BufferedInputStream bufInput = 
+					new BufferedInputStream(url.openStream());
 			while ((n = bufInput.read(buffer)) > 0) {
 				byteArrayOut.write(buffer, 0, n);
 //				writeChannel.write(ByteBuffer.wrap(buffer, 0, n));
@@ -86,7 +89,8 @@ public class DashMapper extends Mapper<Entity, String, KeyValue<Long, String>>{
 			
 			
 			String key = (String) value.getProperty("representationInfo");
-			getContext().emit(key, KeyValue.of(new Long(id), file.getFullPath()));
+			getContext().emit(
+					key, KeyValue.of(new Long(id), file.getFullPath()));
 //			getContext().emit(key, file.getFullPath());
 		} catch (Exception e) {
 			e.printStackTrace();

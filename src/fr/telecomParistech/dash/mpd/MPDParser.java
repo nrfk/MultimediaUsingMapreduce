@@ -232,30 +232,4 @@ public class MPDParser {
 		return dirUrl;
 	}
 	
-	public static void main(String[] args) throws Exception{
-		URL url = new URL(
-				"http://localhost:8888/resources/count-video_dash.mpd"); 
-		BufferedReader reader = 
-				new BufferedReader(new InputStreamReader(url.openStream()));
-		String xml = "";
-		String line = "";
-		
-		while ((line = reader.readLine() ) != null) {
-			xml += line;
-		}
-
-		System.out.println(xml);
-		
-		String dirUrl = getEnclosingDirectoryOf(
-				"http://localhost:8888/resources/count-video_dash.mpd");
-		System.out.println(dirUrl);
-		
-//		Document doc = DocumentBuilderFactory
-//				.newInstance()
-//				.newDocumentBuilder()
-//				.parse(new ByteArrayInputStream(xml.getBytes()));
-//		
-//		MPD mpd = parseMPD(doc);
-//		System.out.println(mpd);
-	}
 }

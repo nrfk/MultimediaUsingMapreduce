@@ -101,7 +101,7 @@
   	<servlet>
     	<servlet-name>MP4ParserServlet</servlet-name>
     	<servlet-class>
-    	  fr.telecomParistech.dash.util.MP4ParserServlet
+    	  fr.telecomParistech.servlet.MP4ParserServlet
    	    </servlet-class>
   	</servlet>
   	<servlet-mapping>
@@ -147,11 +147,25 @@
 	    <url-pattern>/process-dash-using-mapreduce</url-pattern>
   	</servlet-mapping>
   	
+  	<!-- Image Extractor Servlet -->
+  	<servlet>
+    	<servlet-name>ImageExtractorServlet</servlet-name>
+    	<servlet-class>
+    	 	fr.telecomParistech.servlet.ImageExtractorServlet
+   	    </servlet-class>
+  	</servlet>
+  	<servlet-mapping>
+	    <servlet-name>ImageExtractorServlet</servlet-name>
+	    <url-pattern>/extract-image-servlet</url-pattern>
+  	</servlet-mapping>
+  	
+  	extract-image-servlet
+  	
   	<!-- ReadBlob Servlet -->
   	<servlet>
     	<servlet-name>ReadBlobServlet</servlet-name>
     	<servlet-class>
-    	  fr.telecomParistech.mapreduce.ReadBlobServlet
+    	  fr.telecomParistech.servlet.ReadBlobServlet
    	    </servlet-class>
   	</servlet>
   	<servlet-mapping>

@@ -42,14 +42,14 @@ import fr.telecomParistech.dash.mpd.SegmentList;
  */
 public class MpdParserServlet extends HttpServlet {
 	private static final long serialVersionUID = 9114247753565601970L;
-	private static final Logger log; 
+	private static final Logger LOGGER; 
 	private static final DatastoreService dataStore; 
 	private static final FileService fileService; 
 	
 	// Init
 	static {
 		dataStore = DatastoreServiceFactory.getDatastoreService();;
-		log = Logger.getLogger(MpdParserServlet.class.getName());
+		LOGGER = Logger.getLogger(MpdParserServlet.class.getName());
 		fileService = FileServiceFactory.getFileService();
 	}
 			
@@ -71,7 +71,7 @@ public class MpdParserServlet extends HttpServlet {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		log.info("mpd file created...");
+		LOGGER.info("mpd file created...");
 		return mpd;
 	}
 	
@@ -99,7 +99,7 @@ public class MpdParserServlet extends HttpServlet {
 					request.getAttribute("status"));
 			return;
 		}
-		log.finest(mpd.toString());
+		LOGGER.finest(mpd.toString());
 		
 		// ------- Ok, now parse it ------------
 		Entity entity = null;

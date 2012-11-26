@@ -1,4 +1,4 @@
-package fr.telecomParistech.mp4parser;
+package fr.telecomParistech.servlet;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,6 +39,8 @@ import com.google.appengine.api.files.AppEngineFile;
 import com.google.appengine.api.files.FileService;
 import com.google.appengine.api.files.FileServiceFactory;
 import com.google.appengine.api.files.FileWriteChannel;
+
+import fr.telecomParistech.mp4parser.ChunkInfo;
 
 /**
  * Parser MP4 file to get I-Frame

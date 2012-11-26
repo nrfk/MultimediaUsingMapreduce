@@ -1,4 +1,4 @@
-package fr.telecomParistech.mapreduce;
+package fr.telecomParistech.servlet;
 
 import java.io.IOException;
 
