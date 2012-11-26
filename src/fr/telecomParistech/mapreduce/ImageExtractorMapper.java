@@ -1,13 +1,12 @@
 package fr.telecomParistech.mapreduce;
 
-public class ImageExtractorMapper {
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.tools.mapreduce.Mapper;
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
+public class ImageExtractorMapper extends Mapper<Entity, Integer, String>{
 
+	public void map(Entity value) {
+		
 	}
 
 }
