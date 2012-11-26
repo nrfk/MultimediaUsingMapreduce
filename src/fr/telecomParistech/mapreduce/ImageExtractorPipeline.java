@@ -6,19 +6,23 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import com.google.appengine.tools.pipeline.FutureValue;
+import com.google.appengine.tools.pipeline.ImmediateValue;
 import com.google.appengine.tools.pipeline.Job1;
 import com.google.appengine.tools.pipeline.Value;
 
 import fr.telecomParistech.dash.mpd.MPD;
 import fr.telecomParistech.dash.mpd.MPDParser;
 
-public class ImageExtractorPipeline extends Job1<String, String>{
+public class ImageExtractorPipeline extends Job1<MPD, String>{
 	private static final long serialVersionUID = 1L;
 
-	public Value<String> run(String mpdLocation) {
-		FutureValue<MPD> mpd = 
+	public Value<MPD> run(String mpdLocation) {
+		Value<MPD> mpd = 
 				futureCall(new DownloadingMpdJob(), immediate(mpdLocation));
-		return immediate("Hello");
+		
+//		System.out.println(mpd.toString());
+//		System.out.println("*******************************");
+		return mpd;
 	}
 
 

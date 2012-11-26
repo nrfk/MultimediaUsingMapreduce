@@ -15,6 +15,7 @@ import com.google.appengine.tools.pipeline.NoSuchObjectException;
 import com.google.appengine.tools.pipeline.PipelineService;
 import com.google.appengine.tools.pipeline.PipelineServiceFactory;
 
+import fr.telecomParistech.dash.mpd.MPD;
 import fr.telecomParistech.mapreduce.ImageExtractorPipeline;
 
 public class ImageExtractorServlet extends HttpServlet {
@@ -89,7 +90,6 @@ public class ImageExtractorServlet extends HttpServlet {
 		}
 		
 		while (jobInfo.getJobState() != JobInfo.State.COMPLETED_SUCCESSFULLY) {
-			System.out.println(jobInfo.getJobState());
 			try {
 				jobInfo = pipelineService.getJobInfo(pipelineId);
 			} catch (NoSuchObjectException e) {
@@ -98,9 +98,19 @@ public class ImageExtractorServlet extends HttpServlet {
 			}
 		}
 		
-		System.out.println("Ok");
-		System.out.println((String)jobInfo.getOutput());
+		System.out.println("******* : " + jobInfo.getJobState() );
 		
+		MPD mpd = (MPD) jobInfo.getOutput();
+		while (mpd == null) {
+			try {
+				jobInfo = pipelineService.getJobInfo(pipelineId);
+			} catch (NoSuchObjectException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			mpd = (MPD) jobInfo.getOutput();
+		}
+		System.out.println(mpd.toString());
 //		redirectToPipelineStatus(req, resp, pipelineId);
 		
 		

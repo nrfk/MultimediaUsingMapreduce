@@ -159,7 +159,6 @@
 	    <url-pattern>/extract-image-servlet</url-pattern>
   	</servlet-mapping>
   	
-  	extract-image-servlet
   	
   	<!-- ReadBlob Servlet -->
   	<servlet>
