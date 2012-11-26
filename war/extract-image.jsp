@@ -1,3 +1,5 @@
+<%@page import="com.google.appengine.api.datastore.Entity"%>
+<%@page import="java.util.List"%>
 <%@page import="fr.telecomParistech.dash.mpd.MPD"%>
 <%@ page import="com.google.appengine.tools.pipeline.*" %>
 <%@ page import="fr.telecomParistech.mapreduce.*" %>
@@ -56,7 +58,7 @@
 	
     if (null != text) {
 %>
-<H4>Computing letter counts...</H4>
+<H4>Extraction Image from:</H4>
 <em><%=text%>
 </em>
 
@@ -74,8 +76,11 @@
 
 <p>
 <%
-  MPD mpd = (MPD) jobInfo.getOutput();
-    out.print(mpd.toString());
+	List<Entity> entityList = (List<Entity>) jobInfo.getOutput();
+    for (Entity e : entityList) {
+    	out.print("Entity: ");
+    	out.println(e.toString());
+    }
   
 %>
 
