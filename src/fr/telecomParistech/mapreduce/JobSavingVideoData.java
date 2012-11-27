@@ -15,7 +15,7 @@ import com.google.appengine.tools.pipeline.Value;
 	@Override
 	public Value<Void> run(List<Entity> entityList) {
 		for (Entity entity : entityList) {
-			System.out.println(entity.toString());
+//			System.out.println(entity.toString());
 			pool.put(entity);
 		}
 		pool.flush();

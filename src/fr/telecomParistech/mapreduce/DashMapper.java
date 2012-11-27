@@ -27,22 +27,22 @@ import com.google.appengine.tools.mapreduce.Mapper;
 public class DashMapper extends Mapper<Entity, String, KeyValue<Long, String>>{
 	//public class DashMapper extends Mapper<Entity, String, String>{
 	private static final long serialVersionUID = 5935430091638190456L;
-	private static final Logger log;
+	private static final Logger LOGGER;
 	// GEA services
 	private static final FileService fileService;
 	private static final BlobstoreService blobstoreService;
 	
 	// init 
 	static {
-		log = Logger.getLogger(DashMapper.class.getName());
-		log.setLevel(Level.WARNING);
+		LOGGER = Logger.getLogger(DashMapper.class.getName());
+		LOGGER.setLevel(Level.WARNING);
 		fileService = FileServiceFactory.getFileService();
 		blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
 	}
 	
 	@Override
 	public void map(Entity value) {
-		log.info("Mapper: " + value.getKey().toString());
+		LOGGER.info("Mapper: " + value.getKey().toString());
 		String initSegUrl = (String) value.getProperty("initSegmentUrl"); 
 		long initSegSize = (Long) value.getProperty("initSegmentSize");
 		String mediaSegUrl = (String) value.getProperty("url"); 

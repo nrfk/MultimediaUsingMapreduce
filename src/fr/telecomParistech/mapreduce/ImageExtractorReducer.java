@@ -1,13 +1,15 @@
 package fr.telecomParistech.mapreduce;
 
-public class ImageExtractorReducer {
+import com.google.appengine.tools.mapreduce.Reducer;
+import com.google.appengine.tools.mapreduce.ReducerInput;
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
+public class ImageExtractorReducer extends Reducer<Integer, String, String> {
+	private static final long serialVersionUID = 3748003219458311578L;
 
+	@Override
+	public void reduce(Integer key, ReducerInput<String> values) {
+		
 	}
+
 
 }

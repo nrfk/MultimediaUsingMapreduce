@@ -62,16 +62,19 @@ public class ConvertUtilityTestDrive {
 	}
 
 
-	@Ignore("Not Ready to Run")  
 	@Test
-	public void testGetNumber() {
-		fail("Not yet implemented");
-	}
-
-	@Ignore("Not Ready to Run")  
-	@Test
-	public void testByteArrayToHext() {
-		fail("Not yet implemented");
+	public void testHextToByteArray() {
+		String hex = "cafe babe";
+		byte[] expected = new byte[] {
+				(byte) Integer.parseInt("11001010", 2),
+				(byte) Integer.parseInt("11111110", 2),
+				(byte) Integer.parseInt("10111010", 2),
+				(byte) Integer.parseInt("10111110", 2),
+		};
+		assertArrayEquals(
+				"Hex To Byte Array", 
+				expected,
+				ConvertUtility.hexStringToByteArray(hex));
 	}
 
 }

@@ -7,6 +7,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
+
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
@@ -60,17 +62,26 @@ import fr.telecomParistech.mp4parser.MP4Parser;
 					
 					MP4Parser mp4Parser = new MP4Parser();
 					
-					URL initSegmentUrl = null;
+					 byte[] segmentData = null;
 					try {
-						initSegmentUrl = new URL(initSegmentPath);
+						URL initSegmentUrl = new URL(initSegmentPath);
+						segmentData = 
+								IOUtils.toByteArray(initSegmentUrl.openStream());
 					} catch (MalformedURLException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
-					String sps = mp4Parser.getSpsInHex(initSegmentUrl);
-					String pps = mp4Parser.getPpsInHex(initSegmentUrl);
-					int nalSize = 
-							mp4Parser.getNalLengthSize(initSegmentUrl);
+					
+					
+					String sps = mp4Parser.getSpsInHex(segmentData);
+					String pps = mp4Parser.getPpsInHex(segmentData);
+					int nalLengthSize = 
+							mp4Parser.getNalLengthSize(segmentData);
+					int videoTrackId = 
+							mp4Parser.getVideoTrackBoxId(segmentData);
 					
 					String representationInfo = "";
 					representationInfo += "id=" + 
@@ -90,7 +101,8 @@ import fr.telecomParistech.mp4parser.MP4Parser;
 						entity.setProperty("id", mediaSegment.getId());
 						entity.setProperty("sps", sps);
 						entity.setProperty("pps", pps);
-						entity.setProperty("nalSize", nalSize);
+						entity.setProperty("nalLengthSize", nalLengthSize);
+						entity.setProperty("videoTrackId", videoTrackId);
 						entity.setProperty("representationInfo", 
 								representationInfo);
 						

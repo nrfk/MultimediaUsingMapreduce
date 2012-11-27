@@ -76,11 +76,11 @@
 
 <p>
 <%
-	List<Entity> entityList = (List<Entity>) jobInfo.getOutput();
+	/* List<Entity> entityList = (List<Entity>) jobInfo.getOutput();
     for (Entity e : entityList) {
     	out.print("Entity: ");
     	out.println(e.toString());
-    }
+    } */
   
 %>
 
