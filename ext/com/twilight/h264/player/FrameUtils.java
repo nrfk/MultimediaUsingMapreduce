@@ -11,6 +11,8 @@ public class FrameUtils {
 		int stride = f.linesize[0];
 		int strideChroma = f.linesize[1];
 
+		
+		
 		for (int y = 0; y < f.imageHeight; y++) {
 			int lineOffLuma = y * stride;
 			int lineOffChroma = (y >> 1) * strideChroma;
@@ -18,6 +20,7 @@ public class FrameUtils {
 			for (int x = 0; x < f.imageWidth; x++) {
 				int c = luma[lineOffLuma + x] - 16;
 				int d = cb[lineOffChroma + (x >> 1)] - 128;
+				
 				int e = cr[lineOffChroma + (x >> 1)] - 128;
 
 				int red = (298 * c + 409 * e + 128) >> 8;

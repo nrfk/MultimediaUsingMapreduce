@@ -61,6 +61,8 @@ public class DashReducer
 			FileWriteChannel writeChannel = 
 					fileService.openWriteChannel(file, lock);
 
+			html += "</Representation>\n";
+			
 			// Different standard Java ways of writing to the channel
 			// are possible. Here we use a PrintWriter:
 			PrintWriter out = 
@@ -68,7 +70,7 @@ public class DashReducer
 
 			
 
-			html += "</Representation>\n";
+			
 //			System.out.println("path: " + file.getFullPath());
 			
 //			System.out.println(html);
@@ -83,51 +85,3 @@ public class DashReducer
 	}
 }
 
-
-
-//try {
-//	String html = "<HTML>\n<HEAD>\n" + "Segment list of: " + key + "\n</HEAD>\n<BODY>\n<PRE>\n";
-//	html += "<table border>\n";
-//
-//	// Collect and sort data
-//	SortedMap<Long, String> sortedMap = new TreeMap<Long, String>();
-//	while (values.hasNext()) {
-//		KeyValue<Long, String> keyvalue = values.next();
-//		Long index = keyvalue.getKey();
-//		String value = keyvalue.getValue();
-//		sortedMap.put(index, value);
-//	}
-//
-//	// Create HTML from sorted data
-//	for (Entry<Long, String> entry : sortedMap.entrySet()) {
-//		html += "<tr>\n";
-//		html += "<td>" + entry.getKey() + "</td>\n";
-//		html += "<td>" + entry.getValue() + "</td>\n";
-//		html += "</tr>\n";
-//	}
-//
-//	// Create a new Blob file with mime-type "text/plain"
-//	AppEngineFile file = fileService.createNewBlobFile("text/html");
-//
-//	// Open a channel to write to it
-//	boolean lock = true;
-//	FileWriteChannel writeChannel = fileService.openWriteChannel(file, lock);
-//
-//	// Different standard Java ways of writing to the channel
-//	// are possible. Here we use a PrintWriter:
-//	PrintWriter out = new PrintWriter(Channels.newWriter(writeChannel, "UTF8"));
-//
-//	
-//
-//	html += "</table>\n";
-//	html += "</PRE></BODY>\n</HTML>\n";
-//	System.out.println("path: " + file.getFullPath());
-//	
-//	System.out.println(html);
-//	out.print(html);
-//	out.close();
-//	writeChannel.closeFinally();
-//	getContext().emit(file.getFullPath());
-//} catch (Exception e) {
-//	e.printStackTrace();
-//}

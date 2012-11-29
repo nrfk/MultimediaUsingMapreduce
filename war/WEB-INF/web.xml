@@ -60,42 +60,6 @@
 	    <url-pattern>/character-counter-servlet</url-pattern>
   	</servlet-mapping>
   	
-  	<!-- Upload Blobstore Servlet -->
-	<servlet>
-    	<servlet-name>Upload</servlet-name>
-    	<servlet-class>
-    	  fr.telecomParistech.blobstore.Upload
-   	    </servlet-class>
-  	</servlet>
-  	<servlet-mapping>
-	    <servlet-name>Upload</servlet-name>
-	    <url-pattern>/upload</url-pattern>
-  	</servlet-mapping>
-  	
-  	<!-- Test Blob Store Servlet -->
-  	<servlet>
-    	<servlet-name>TestBlobStore</servlet-name>
-    	<servlet-class>
-    	  fr.telecomParistech.blobstore.TestBlobStore
-   	    </servlet-class>
-  	</servlet>
-  	<servlet-mapping>
-	    <servlet-name>TestBlobStore</servlet-name>
-	    <url-pattern>/test-blobstore</url-pattern>
-  	</servlet-mapping>
-  	
-  	<!-- Test H264PlayerAppengineServlet -->
-  	<servlet>
-    	<servlet-name>H264PlayerAppengineServlet</servlet-name>
-    	<servlet-class>
-    	  com.twilight.h264.player.H264PlayerAppengineServlet
-   	    </servlet-class>
-  	</servlet>
-  	<servlet-mapping>
-	    <servlet-name>H264PlayerAppengineServlet</servlet-name>
-	    <url-pattern>/h264</url-pattern>
-  	</servlet-mapping>
-  	
   	 <!-- MP4ParserServlet -->
   	 <!--
   	<servlet>
@@ -111,27 +75,15 @@
   	 -->
   	
   	<!-- ****************** MUMA ********************************* -->
-  	<!-- Serve Blobstore Servlet -->
-  	<servlet>
-    	<servlet-name>Serve</servlet-name>
-    	<servlet-class>
-    	  fr.telecomParistech.blobstore.Serve
-   	    </servlet-class>
-  	</servlet>
-  	<servlet-mapping>
-	    <servlet-name>Serve</servlet-name>
-	    <url-pattern>/serve</url-pattern>
-  	</servlet-mapping>
-  	
   	<!-- MdpParserServlet Servlet -->
   	<servlet>
-    	<servlet-name>MpdParserServlet</servlet-name>
+    	<servlet-name>MPDParserServlet</servlet-name>
     	<servlet-class>
-    	  fr.telecomParistech.servlet.MpdParserServlet
+    	  fr.telecomParistech.servlet.MPDParserServlet
    	    </servlet-class>
   	</servlet>
   	<servlet-mapping>
-	    <servlet-name>MpdParserServlet</servlet-name>
+	    <servlet-name>MPDParserServlet</servlet-name>
 	    <url-pattern>/parse-mdp-servlet</url-pattern>
   	</servlet-mapping>
   	
@@ -146,19 +98,6 @@
 	    <servlet-name>DashMapReduceServlet</servlet-name>
 	    <url-pattern>/process-dash-using-mapreduce</url-pattern>
   	</servlet-mapping>
-  	
-  	<!-- Image Extractor Servlet -->
-  	<servlet>
-    	<servlet-name>ImageExtractorServlet</servlet-name>
-    	<servlet-class>
-    	 	fr.telecomParistech.servlet.ImageExtractorServlet
-   	    </servlet-class>
-  	</servlet>
-  	<servlet-mapping>
-	    <servlet-name>ImageExtractorServlet</servlet-name>
-	    <url-pattern>/extract-image-servlet</url-pattern>
-  	</servlet-mapping>
-  	
   	
   	<!-- ReadBlob Servlet -->
   	<servlet>

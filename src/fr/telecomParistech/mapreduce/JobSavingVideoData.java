@@ -7,6 +7,12 @@ import com.google.appengine.tools.mapreduce.DatastoreMutationPool;
 import com.google.appengine.tools.pipeline.Job1;
 import com.google.appengine.tools.pipeline.Value;
 
+/**
+ * This packet-private class (default modifier) is used to save job video data
+ * obtained via JobParsingMpd
+ * @author xuan-hoa.nguyen@telecom-paristech.fr
+ *
+ */
 /* packet-private */ class JobSavingVideoData 
 		extends Job1<Void, List<Entity>> {
 	private static final long serialVersionUID = -4270133947832717398L;
@@ -15,7 +21,7 @@ import com.google.appengine.tools.pipeline.Value;
 	@Override
 	public Value<Void> run(List<Entity> entityList) {
 		for (Entity entity : entityList) {
-//			System.out.println(entity.toString());
+			System.out.println(entity.toString());
 			pool.put(entity);
 		}
 		pool.flush();

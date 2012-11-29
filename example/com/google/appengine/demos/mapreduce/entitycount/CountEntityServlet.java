@@ -19,6 +19,7 @@ import com.google.appengine.api.blobstore.BlobInfo;
 import com.google.appengine.api.blobstore.BlobInfoFactory;
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
+import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.files.AppEngineFile;
 import com.google.appengine.api.files.FileServiceFactory;
 import com.google.appengine.api.memcache.MemcacheService;
@@ -42,6 +43,9 @@ import com.google.appengine.tools.pipeline.PipelineService;
 import com.google.appengine.tools.pipeline.PipelineServiceFactory;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+
+import fr.telecomParistech.mapreduce.ImageExtractorMapper;
+import fr.telecomParistech.mapreduce.ImageExtractorReducer;
 
 /**
  * Serves a page that allows interaction with this MapReduce demo.
@@ -224,10 +228,57 @@ public class CountEntityServlet extends HttpServlet {
               Integer.parseInt(req.getParameter("entitiesPerShard")),
               Integer.parseInt(req.getParameter("shardCount"))));
     } else if ("run".equals(action)) {
-      redirectToPipelineStatus(req, resp,
-          startStatsJob(
-              Integer.parseInt(req.getParameter("mapShardCount")),
-              Integer.parseInt(req.getParameter("reduceShardCount"))));
+    	
+    	
+    	
+//      redirectToPipelineStatus(req, resp,
+//          startStatsJob(
+//              Integer.parseInt(req.getParameter("mapShardCount")),
+//              Integer.parseInt(req.getParameter("reduceShardCount"))));
+      
+      PipelineService pipelineService = 
+    		  PipelineServiceFactory.newPipelineService();
+      
+   // Create Map Reduce task
+   		int mapShardCount = 5;
+   		int reduceShardCount = 1;
+   		
+   		
+   		
+   		
+//   		return MapReduceJob.start(
+//   		        MapReduceSpecification.of(
+//   		            "MapReduceTest stats",
+//   		            new DatastoreInput("MapReduceTest", mapShardCount),
+//   		            new CountMapper(),
+//   		            Marshallers.getStringMarshaller(),
+//   		            Marshallers.getLongMarshaller(),
+//   		            new CountReducer(),
+//   		            new InMemoryOutput<KeyValue<String, Long>>(reduceShardCount)),
+//   		        getSettings());
+   		
+   		MapReduceSpecification<  Entity, // I  
+								 String, // K
+								 Long,  // V 
+								 KeyValue<String, Long>, // O 
+								 List<List<KeyValue<String, Long>>>> // R 
+   				mrSpec = MapReduceSpecification.of(
+						"MapReduceTest stats",
+						new DatastoreInput("MapReduceTest", mapShardCount), // Input<I> = Input<Entity>
+						new CountMapper(), // Mapper<I, K, V> =  Mapper<Entity, String, Long>
+						Marshallers.getStringMarshaller(),
+						Marshallers.getLongMarshaller(),
+						new CountReducer(), // Reducer<K, V, O> = Reducer<String, Long, KeyValue<String, Long>>
+						
+						// Output<O, R> = Output<KeyValue<String, Long>, List<List<KeyValue<String, Long>>>>
+						new InMemoryOutput<KeyValue<String, Long>>(reduceShardCount)); 
+   		MapReduceSettings settings = getSettings();
+      String pipelineId = pipelineService.startNewPipeline(new MapReduceJob(), mrSpec, settings);
+      
+      
+      
+      
+      
     } else if ("viewJobResult".equals(action)) {
       PrintWriter pw = new PrintWriter(resp.getOutputStream());
       try {

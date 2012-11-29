@@ -1,9 +1,11 @@
 package fr.telecomParistech.servlet;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -12,15 +14,17 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.ByteArrayOutputStream;
 
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.files.AppEngineFile;
 import com.google.appengine.api.files.FileService;
 import com.google.appengine.api.files.FileServiceFactory;
-import com.google.appengine.tools.mapreduce.DatastoreMutationPool;
+import com.google.appengine.api.files.FileWriteChannel;
 
 import fr.telecomParistech.dash.mpd.AdaptationSet;
 import fr.telecomParistech.dash.mpd.InitSegment;
@@ -30,17 +34,21 @@ import fr.telecomParistech.dash.mpd.MediaSegment;
 import fr.telecomParistech.dash.mpd.Period;
 import fr.telecomParistech.dash.mpd.Representation;
 import fr.telecomParistech.dash.mpd.SegmentList;
-import fr.telecomParistech.mp4parser.MP4Parser;
 
-public class MPDParserServlet extends HttpServlet {
+/**
+ * MpdParserServlet is used to parse .mpd file coming from client side
+ * @author xuan-hoa.nguyen@telecom-paristech.fr
+ *
+ */
+public class DashMpdParserServlet extends HttpServlet {
 	private static final long serialVersionUID = 9114247753565601970L;
 	private static final Logger LOGGER; 
+	private static final DatastoreService dataStore; 
 	private static final FileService fileService; 
-	private static final transient DatastoreMutationPool pool =
-			DatastoreMutationPool.forManualFlushing();
 	
 	// Init
 	static {
+		dataStore = DatastoreServiceFactory.getDatastoreService();;
 		LOGGER = Logger.getLogger(DashMpdParserServlet.class.getName());
 		fileService = FileServiceFactory.getFileService();
 	}
@@ -114,60 +122,61 @@ public class MPDParserServlet extends HttpServlet {
 					SegmentList segmentList = representation.getSegmentList();
 					
 					InitSegment initSegment = segmentList.getInitSegment();
-					String initSegmentPath = 
+					String initSegmentUrl = 
 							dirUrl + "/" + initSegment.getSourceURL();
 
 					List<MediaSegment> mediaSegments = 
 							segmentList.getAllMediaSegment();
 					
+					// Create a Blob Store for each init segment of 
+					// a specific representation. Use Byte ArrayOutputStream
+					// to avoid datastore to reduce the number of read operation
+					// http://stackoverflow.com/questions/8052886
+					// /reduce-datastore-read-operation
+					ByteArrayOutputStream byteArrayOut = 
+							new ByteArrayOutputStream();
+					AppEngineFile file = 
+							fileService.createNewBlobFile("video/mp4");
+					boolean lock = true;
+					FileWriteChannel writeChannel = 
+							fileService.openWriteChannel(file, lock);
 
-					MP4Parser mp4Parser = new MP4Parser();
-					
-					 byte[] segmentData = null;
-					try {
-						URL initSegmentUrl = new URL(initSegmentPath);
-						segmentData = 
-								IOUtils.toByteArray(initSegmentUrl.openStream());
-					} catch (MalformedURLException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+					URL url = new URL(initSegmentUrl);
+					BufferedInputStream bufInput = 
+							new BufferedInputStream(url.openStream());
+					byte[] buffer = new byte[4096];
+					int n;
+					long size = 0;
+					while ((n = bufInput.read(buffer)) > 0) {
+						size += n;
+						byteArrayOut.write(buffer, 0, n);
 					}
 					
-					String sps = mp4Parser.getSpsInHex(segmentData);
-					String pps = mp4Parser.getPpsInHex(segmentData);
-					int nalLengthSize = 
-							mp4Parser.getNalLengthSize(segmentData);
-					int videoTrackId = 
-							mp4Parser.getVideoTrackBoxId(segmentData);
-					
+					buffer = byteArrayOut.toByteArray();
+					writeChannel.write(ByteBuffer.
+							wrap(buffer, 0, buffer.length));
+					writeChannel.closeFinally();
+					// ---------------- Done create Blob Store -----------------
+
+					// Create a new Entity to store all the information
 					String representationInfo = "";
 					representationInfo += "id=" + 
-								representation.getId() + ";";
+							representation.getId() + ";";
 					representationInfo += "width=" + 
-								representation.getAttribute("width")+ ";";
+							representation.getAttribute("width")+ ";";
 					representationInfo += "height=" + 
-								representation.getAttribute("height")+ ";";
+							representation.getAttribute("height")+ ";";
 					representationInfo += "bandwidth=" + 
-								representation.getAttribute("bandwidth")+ ";";
-					
-					// For each media segment, create a new blob for storing 
-					// image after.
+							representation.getAttribute("bandwidth")+ ";";
 					
 					for (MediaSegment mediaSegment : mediaSegments) {
-						Key key = KeyFactory.createKey(
-								"MediaSegmentInfo",  mediaSegment.getId());
+						Key key = KeyFactory.createKey("MediaSegmentInfo", 
+								mediaSegment.getId());
 						entity = new Entity(key);
 						
-						entity.setProperty(
-								"representationId", 
-								representation.getId());
-						entity.setProperty("sps", sps);
-						entity.setProperty("pps", pps);
-						entity.setProperty("nalLengthSize", nalLengthSize);
-						entity.setProperty("videoTrackId", videoTrackId);
+						entity.setProperty("id", mediaSegment.getId());
+						entity.setProperty("initSegmentUrl",file.getFullPath());
+						entity.setProperty("initSegmentSize", size);
 						entity.setProperty("representationInfo", 
 								representationInfo);
 						
@@ -175,29 +184,11 @@ public class MPDParserServlet extends HttpServlet {
 						entity.setProperty("url", dirUrl + "/" + 
 								relativeLocation);
 						
-						// Create a new Blob File, as a place holder for storing
-						// image after.
-						AppEngineFile file = null;
-						while (file == null) {
-							try {
-								file = fileService
-										.createNewBlobFile("image/bmp");
-							} catch (IOException ignored) {
-								// Exception will be ignored
-							}
-						}
-						entity.setProperty("imageFullPath", file.getFullPath());
-						
-						System.out.println("********   BEGIN  *******");
-						System.out.println(entity);
-						System.out.println("********   END  *******");
-						pool.put(entity);
+						dataStore.put(entity);
 					}
 				}
 			}
 		}
-		pool.flush();
-		response.sendRedirect("/extract-image-using-mapreduce.jsp");
+		response.sendRedirect("/process-dash-using-mapreduce");
 	}
-
 }

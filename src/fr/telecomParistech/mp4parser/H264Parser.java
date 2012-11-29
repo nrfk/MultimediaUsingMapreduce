@@ -3,7 +3,6 @@ package fr.telecomParistech.mp4parser;
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -28,38 +27,48 @@ import fr.telecomParistech.image.bitmap.BitmapHeader;
 import fr.telecomParistech.image.bitmap.BitmapHeader.Attribute;
 import fr.telecomParistech.image.bitmap.ConvertUtility;
 
-public class H264Parser{
+/**
+ * H264Parser is the modified version of H264Player situated at 
+ * com.twilight.h264.player. It's used to parse H264 raw file
+ * @author xuan-hoa.nguyen@telecom-paristech.fr
+ *
+ */
+public class H264Parser {
 
 	public static final int INBUF_SIZE = 65535;
 	private static final Logger LOGGER = 
 			Logger.getLogger(H264Parser.class.getName());
-	private static final FileService fileService = 
-			FileServiceFactory.getFileService();
-	private static final ImagesService imagesService = 
-			ImagesServiceFactory.getImagesService();
+	
+
 	private int[] buffer = null;
-	private static int imageCounter = 0;
+	
 
 	static {
-		LOGGER.setLevel(Level.INFO);
+		LOGGER.setLevel(Level.SEVERE);
 	}
-	
-	public String playFile(byte[] h264raw, int imageNo) {
-		String imageUrl = "";
 
+	/**
+	 * parse H264 raw and return its I-image
+	 * @param h264Raw h264 raw data in byte array
+	 * @return
+	 */
+	public byte[] parseH264Raw(byte[] h264Raw) {
+		FileService fileService = FileServiceFactory.getFileService();
+		ImagesService imagesService = ImagesServiceFactory.getImagesService();
+		int imageCounter = 0;
 		// Get Inputstream
-		InputStream inputStream = new ByteArrayInputStream(h264raw);
-		
+		InputStream inputStream = new ByteArrayInputStream(h264Raw);
+
 		H264Decoder codec;
 		MpegEncContext mpegEncContext= null;
-		
-		
+
+
 		int frame, len;
 		int[] got_picture = new int[1];
 		AVFrame avFrame;
 		//uint8_t inbuf[INBUF_SIZE + H264Context.FF_INPUT_BUFFER_PADDING_SIZE];
 		byte[] inbuf_byte = new byte[INBUF_SIZE + 
-	                             MpegEncContext.FF_INPUT_BUFFER_PADDING_SIZE];
+		                             MpegEncContext.FF_INPUT_BUFFER_PADDING_SIZE];
 		int[] inbuf_int = new int[INBUF_SIZE + 
 		                          MpegEncContext.FF_INPUT_BUFFER_PADDING_SIZE];
 		//char buf[1024];
@@ -85,7 +94,7 @@ public class H264Parser{
 			/* we do not send complete frames */
 			mpegEncContext.flags |= MpegEncContext.CODEC_FLAG_TRUNCATED;
 		}
-			 
+
 
 		/* For some codecs, such as msmpeg4 and mpeg4, width and height
 	       MUST be initialized there because this information is not
@@ -98,11 +107,9 @@ public class H264Parser{
 		}
 
 		try {
-			LOGGER.info("Creating file...");
 			/* the codec gives us the frame size, in samples */
-//			inputStream = new FileInputStream(f);
-//			inputStream = bais;
-			LOGGER.info("File created...");
+			//			inputStream = new FileInputStream(f);
+			//			inputStream = bais;
 			frame = 0;
 			int dataPointer; // Current pointer position in the file
 
@@ -174,19 +181,15 @@ public class H264Parser{
 
 
 				while (avPacket.size > 0) {
-					LOGGER.info("Creating image frame...");
 					len = mpegEncContext.avcodec_decode_video2(
 							avFrame, got_picture, avPacket);
 					if (len < 0) {
-						LOGGER.info("Error while decoding frame "+ frame);
 						// Discard current packet and proceed to next packet
 						break;
 					} // if
-					
-					LOGGER.info("got_picture[0]: " + got_picture[0]);
+
 					if (got_picture[0]!=0) {
-						
-						LOGGER.info("Got a picture...");
+
 						avFrame = mpegEncContext.priv_data.displayPicture;
 
 						int bufferSize = avFrame.imageWidth 
@@ -195,72 +198,41 @@ public class H264Parser{
 							buffer = new int[bufferSize];
 						}
 
-						LOGGER.info("FrameUtils.YUV2RGB()....");
 						FrameUtils.YUV2RGB(avFrame, buffer);
-						LOGGER.info("imageCounter: " + imageCounter + 
-								" imageNo: " + imageNo);
-						if (imageCounter == imageNo) {
-							ByteBuffer byteBuffer = 
-									ByteBuffer.allocate(buffer.length * 4);
-							byte[] data;
+						ByteBuffer byteBuffer = 
+								ByteBuffer.allocate(buffer.length * 4);
+						byte[] data;
 
-							// Data in h264 is stored in reversed order as in 
-							// .bmp, so we need to "flip" up side down the image
-							for (int i = buffer.length - 1; i >= 0; i--) {
-								data = ConvertUtility.integerToByteArray(
-												buffer[i], 
-												ByteOrder.LITTLE_ENDIAN);
-								byte[] newData = new byte[4];
-								newData[0] = data[2];
-								newData[1] = data[3];
-								newData[2] = data[0];
-								newData[3] = data[1];
-								
-								byteBuffer.put(newData);
-							}
+						// Data in h264 is stored in reversed order as in 
+						// .bmp, so we need to "flip" up side down the image
+						for (int i = buffer.length - 1; i >= 0; i--) {
+							data = ConvertUtility.integerToByteArray(
+									buffer[i], 
+									ByteOrder.LITTLE_ENDIAN);
 
-							// Full image
-							data = byteBuffer.array();
-							byte[] header = 
-									generateImageHeader(
-											avFrame.imageWidth, 
-											avFrame.imageHeight, 
-											data.length);
-
-							byte[] image = new byte[data.length + header.length];
-							System.arraycopy(header, 0, image, 0, header.length);
-							System.arraycopy(
-									data, 0, 
-									image, header.length, 
-									data.length);
-							LOGGER.info("imageSize: " + image.length);
-							
-
-							// Write to blob file
-							AppEngineFile file = 
-									fileService.createNewBlobFile("image/bmp");
-							boolean lock = true;
-							FileWriteChannel writeChannel = 
-									fileService.openWriteChannel(file, lock);
-							writeChannel.write(
-									ByteBuffer.wrap(image, 0, image.length));
-							writeChannel.closeFinally();
-
-							BlobKey blobKey = fileService.getBlobKey(file);
-							ServingUrlOptions servingUrlOptions = 
-									ServingUrlOptions.Builder
-									.withBlobKey(blobKey);
-
-
-							imageUrl = imagesService
-									.getServingUrl(servingUrlOptions);
-//							imageUrl = file.getFullPath();
-							
-							LOGGER.info("imageUrl #" + 
-									imageCounter + ": " + imageUrl);
-							return imageUrl;
+							byteBuffer.put(data);
 						}
-						imageCounter ++;
+
+						// Full image
+						data = byteBuffer.array();
+						byte[] header = 
+								generateImageHeader(
+										avFrame.imageWidth, 
+										avFrame.imageHeight, 
+										data.length);
+
+						byte[] image = new byte[data.length + header.length];
+						System.arraycopy(header, 0, image, 0, header.length);
+						System.arraycopy(
+								data, 0, 
+								image, header.length, 
+								data.length);
+						LOGGER.info("imageSize: " + image.length);
+
+						// Now, we return the image, don't need to continue 
+						// the decoding-precess.
+						inputStream.close();
+						return image;
 					}
 					avPacket.size -= len;
 					avPacket.data_offset += len;
@@ -270,6 +242,9 @@ public class H264Parser{
 			} // while
 
 
+		} catch (ArrayIndexOutOfBoundsException arrayException) {
+			System.out.println("ArrayIndexOutOfBoundsException");
+			return null;
 		} catch (FileNotFoundException e) {
 			LOGGER.info("Error while creating file");
 			e.printStackTrace();
@@ -283,8 +258,7 @@ public class H264Parser{
 		mpegEncContext = null;
 		avFrame = null;
 		System.out.println("Stop playing video.");
-
-		return imageUrl;
+		return null;
 	}
 	private byte[] generateImageHeader(int width, int height, int dataSize) {
 		BitmapHeader bitmapHeader = new BitmapHeader();

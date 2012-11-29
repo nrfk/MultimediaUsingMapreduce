@@ -15,6 +15,15 @@ import com.google.appengine.tools.pipeline.Value;
 
 import fr.telecomParistech.dash.mpd.MPD;
 
+/**
+ * ImageExtractorPipeline consists of three sub-jobs:
+ *  + JobDownloadingMpd for dowloading MPD file
+ *  + JobParsingMpd for parsing MPD file
+ *  + JobSavingVideoData for saving information obtained via parsing MPD
+ *  + ImageExtractorMapReduce
+ * @author xuan-hoa.nguyen@telecom-paristech.fr
+ *
+ */
 public class ImageExtractorPipeline extends Job1<String, String>{
 	private static final long serialVersionUID = 1L;
 	private static final boolean USE_BACKENDS = false;
@@ -29,7 +38,7 @@ public class ImageExtractorPipeline extends Job1<String, String>{
 		futureCall(new JobSavingVideoData(), entityList);
 		
 		// Create Map Reduce task
-		int mapShardCount = 4;
+		int mapShardCount = 5;
 		int reduceShardCount = 1;
 		
 		MapReduceSpecification<	Entity, 
@@ -52,8 +61,6 @@ public class ImageExtractorPipeline extends Job1<String, String>{
 		
 		return immediate(pipelineId);
 	}
-
-
 	/**
 	 * Get defaut MapReduceSettings, used by the startDashProcessingJob() 
 	 * function

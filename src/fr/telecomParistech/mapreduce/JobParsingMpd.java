@@ -12,6 +12,9 @@ import org.apache.commons.io.IOUtils;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.files.AppEngineFile;
+import com.google.appengine.api.files.FileService;
+import com.google.appengine.api.files.FileServiceFactory;
 import com.google.appengine.tools.pipeline.Job2;
 import com.google.appengine.tools.pipeline.Value;
 
@@ -25,9 +28,16 @@ import fr.telecomParistech.dash.mpd.Representation;
 import fr.telecomParistech.dash.mpd.SegmentList;
 import fr.telecomParistech.mp4parser.MP4Parser;
 
+/**
+ * This packet-private class (default modifier) is used to parse MPD file
+ * @author xuan-hoa.nguyen@telecom-paristech.fr
+ *
+ */
 /* packet-private */ class JobParsingMpd 
 		extends Job2<List<Entity>, MPD, String> {
 	private static final long serialVersionUID = 1070584585242415861L;
+	private static final FileService fileService = 
+			FileServiceFactory.getFileService();
 
 	@Override
 	public Value<List<Entity>> run(MPD mpd, String mpdLocation) {
@@ -93,12 +103,16 @@ import fr.telecomParistech.mp4parser.MP4Parser;
 					representationInfo += "bandwidth=" + 
 								representation.getAttribute("bandwidth")+ ";";
 					
+					// For each media segment, create a new blob for storing 
+					// image after.
 					for (MediaSegment mediaSegment : mediaSegments) {
 						Key key = KeyFactory.createKey(
 								"MediaSegmentInfo",  mediaSegment.getId());
 						entity = new Entity(key);
 						
-						entity.setProperty("id", mediaSegment.getId());
+						entity.setProperty(
+								"representationId", 
+								representation.getId());
 						entity.setProperty("sps", sps);
 						entity.setProperty("pps", pps);
 						entity.setProperty("nalLengthSize", nalLengthSize);
@@ -110,6 +124,19 @@ import fr.telecomParistech.mp4parser.MP4Parser;
 						entity.setProperty("url", dirUrl + "/" + 
 								relativeLocation);
 						
+						// Create a new Blob File, as a place holder for storing
+						// image after.
+						AppEngineFile file = null;
+						while (file == null) {
+							try {
+								file = fileService
+										.createNewBlobFile("image/bmp");
+							} catch (IOException ignored) {
+								// Exception will be ignored
+							}
+						}
+						System.out.println(file.getFullPath());
+						entity.setProperty("imageFullPath", file.getFullPath());
 						entityList.add(entity);
 					}
 				}
@@ -118,6 +145,7 @@ import fr.telecomParistech.mp4parser.MP4Parser;
 		
 		return immediate(entityList);
 	}
+	
 	
 	private String getDirectoryUrl(String fileUrl) {
 		int delimIndex = fileUrl.lastIndexOf('/');

@@ -47,7 +47,7 @@ public class DashMapper extends Mapper<Entity, String, KeyValue<Long, String>>{
 		long initSegSize = (Long) value.getProperty("initSegmentSize");
 		String mediaSegUrl = (String) value.getProperty("url"); 
 		long id = (Long) value.getProperty("id");
-		
+
 		try {
 			// Create Blob Store for each file
 			AppEngineFile file = 

@@ -7,9 +7,9 @@ package fr.telecomParistech.mp4parser;
  *
  */
 public class ChunkInfo {
-	private long index;
-	private long offset;
-	private long firstSample;
+	private long index; // chunk index
+	private long offset; // chunk offset from the beginning of file
+	private long firstSample; // first sample in chunk
 	
 	/**
 	 * Default constructor

@@ -11,7 +11,12 @@ import com.google.appengine.tools.pipeline.Value;
 import fr.telecomParistech.dash.mpd.MPD;
 import fr.telecomParistech.dash.mpd.MPDParser;
 
-/* packet-private */ class JobDownloadingMpd extends Job1<MPD, String>{
+/**
+ * This packet-private class (default modifier) is used to dowload MPD file
+ * @author xuan-hoa.nguyen@telecom-paristech.fr
+ *
+ */
+/* packet-private */ class JobDownloadingMpd extends Job1<MPD, String> {
 	private static final long serialVersionUID = 3232685144696876419L;
 
 	public Value<MPD> run(String mpdLocation) {
