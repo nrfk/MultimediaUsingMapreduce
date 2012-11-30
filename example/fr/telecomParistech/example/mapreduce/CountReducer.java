@@ -1,4 +1,4 @@
-package fr.telecomParistech.mapreduce;
+package fr.telecomParistech.example.mapreduce;
 
 import com.google.appengine.tools.mapreduce.KeyValue;
 import com.google.appengine.tools.mapreduce.Reducer;

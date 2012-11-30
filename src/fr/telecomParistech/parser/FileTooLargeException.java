@@ -1,4 +1,4 @@
-package fr.telecomParistech.mp4parser;
+package fr.telecomParistech.parser;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;

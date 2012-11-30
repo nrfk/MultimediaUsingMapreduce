@@ -1,4 +1,4 @@
-package fr.telecomParistech.mp4parser;
+package fr.telecomParistech.parser;
 
 /**
  * Chunk Data, used to keep the chunk information returned by 

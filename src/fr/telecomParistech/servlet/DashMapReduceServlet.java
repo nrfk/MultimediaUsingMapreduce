@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.configuration.XMLConfiguration;
 
-import com.google.appengine.demos.mapreduce.entitycount.CountEntityServlet;
+import com.google.appengine.demos.mapreduce.entitycount.EntityCounterServlet;
 import com.google.appengine.tools.mapreduce.MapReduceJob;
 import com.google.appengine.tools.mapreduce.MapReduceResult;
 import com.google.appengine.tools.mapreduce.MapReduceSettings;
@@ -38,7 +38,7 @@ import fr.telecomParistech.mapreduce.DashReducer;
 public class DashMapReduceServlet extends HttpServlet {
 	private static final long serialVersionUID = 5366478568593641461L;	
 	private static final Logger log = 
-			Logger.getLogger(CountEntityServlet.class.getName());
+			Logger.getLogger(EntityCounterServlet.class.getName());
 	static {
 		log.setLevel(Level.INFO);
 	}

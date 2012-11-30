@@ -1,4 +1,4 @@
-package fr.telecomParistech.mapreduce;
+package fr.telecomParistech.example.mapreduce;
 
 import java.io.IOException;
 import java.io.PrintWriter;

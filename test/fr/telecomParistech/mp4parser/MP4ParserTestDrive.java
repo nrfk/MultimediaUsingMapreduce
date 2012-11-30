@@ -3,9 +3,11 @@ package fr.telecomParistech.mp4parser;
 import static org.junit.Assert.*;
 
 import java.io.File;
- import java.util.List;
+import java.util.List;
 
 import org.junit.Test;
+
+import fr.telecomParistech.parser.MP4Parser;
 
 public class MP4ParserTestDrive {
 	private MP4Parser mp4Parser = new MP4Parser();

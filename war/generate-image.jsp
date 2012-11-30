@@ -35,7 +35,7 @@
 <BODY>
 	<H2>Simple Image Generator</H2>
 	<em > <%= label%> </em>
-	<form action="generate-image-servlet" method="post">
+	<form action="image-generator-servlet" method="post">
 				</br>
 				Color:
 				</br>

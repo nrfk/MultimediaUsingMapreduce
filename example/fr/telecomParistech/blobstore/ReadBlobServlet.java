@@ -1,4 +1,4 @@
-package fr.telecomParistech.servlet;
+package fr.telecomParistech.blobstore;
 
 import java.io.IOException;
 

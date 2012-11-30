@@ -1,4 +1,4 @@
-package fr.telecomParistech.mp4parser;
+package fr.telecomParistech.parser;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;

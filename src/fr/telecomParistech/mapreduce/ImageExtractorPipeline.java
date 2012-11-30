@@ -2,7 +2,10 @@ package fr.telecomParistech.mapreduce;
 
 import java.util.List;
 
+import javax.persistence.criteria.CriteriaBuilder.In;
+
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.tools.mapreduce.KeyValue;
 import com.google.appengine.tools.mapreduce.MapReduceJob;
 import com.google.appengine.tools.mapreduce.MapReduceSettings;
 import com.google.appengine.tools.mapreduce.MapReduceSpecification;
@@ -41,11 +44,11 @@ public class ImageExtractorPipeline extends Job1<String, String>{
 		int mapShardCount = 5;
 		int reduceShardCount = 1;
 		
-		MapReduceSpecification<	Entity, 
-								Integer, 
-								String, 
-								String, 
-								List<List<String>>> 
+		MapReduceSpecification<	Entity, // I
+								Integer, // K
+								String, // V
+								KeyValue<Integer, String>, // O
+								List<List<KeyValue<Integer, String>>>> //R
 				mrSpec = MapReduceSpecification.of(
 						"Image Extractor", 
 						new DatastoreInput("MediaSegmentInfo", mapShardCount), 
@@ -53,7 +56,7 @@ public class ImageExtractorPipeline extends Job1<String, String>{
 						Marshallers.getIntegerMarshaller(), 
 						Marshallers.getStringMarshaller(), 
 						new ImageExtractorReducer(), 
-						new InMemoryOutput<String>(reduceShardCount));
+						new InMemoryOutput<KeyValue<Integer, String>>(reduceShardCount));
 		
 		MapReduceSettings settings = getSettings();
 		

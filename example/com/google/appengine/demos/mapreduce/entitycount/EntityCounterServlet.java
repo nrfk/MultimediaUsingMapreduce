@@ -53,9 +53,9 @@ import fr.telecomParistech.mapreduce.ImageExtractorReducer;
  * @author ohler@google.com (Christian Ohler)
  */
 @SuppressWarnings("serial")
-public class CountEntityServlet extends HttpServlet {
+public class EntityCounterServlet extends HttpServlet {
 
-  private static final Logger log = Logger.getLogger(CountEntityServlet.class.getName());
+  private static final Logger log = Logger.getLogger(EntityCounterServlet.class.getName());
 
   private final MemcacheService memcache = MemcacheServiceFactory.getMemcacheService();
   private final UserService userService = UserServiceFactory.getUserService();

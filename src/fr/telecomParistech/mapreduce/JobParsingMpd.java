@@ -26,7 +26,7 @@ import fr.telecomParistech.dash.mpd.MediaSegment;
 import fr.telecomParistech.dash.mpd.Period;
 import fr.telecomParistech.dash.mpd.Representation;
 import fr.telecomParistech.dash.mpd.SegmentList;
-import fr.telecomParistech.mp4parser.MP4Parser;
+import fr.telecomParistech.parser.MP4Parser;
 
 /**
  * This packet-private class (default modifier) is used to parse MPD file

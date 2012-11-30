@@ -30,7 +30,7 @@ import fr.telecomParistech.dash.mpd.MediaSegment;
 import fr.telecomParistech.dash.mpd.Period;
 import fr.telecomParistech.dash.mpd.Representation;
 import fr.telecomParistech.dash.mpd.SegmentList;
-import fr.telecomParistech.mp4parser.MP4Parser;
+import fr.telecomParistech.parser.MP4Parser;
 
 public class MPDParserServlet extends HttpServlet {
 	private static final long serialVersionUID = 9114247753565601970L;
@@ -188,16 +188,13 @@ public class MPDParserServlet extends HttpServlet {
 						}
 						entity.setProperty("imageFullPath", file.getFullPath());
 						
-						System.out.println("********   BEGIN  *******");
-						System.out.println(entity);
-						System.out.println("********   END  *******");
 						pool.put(entity);
 					}
 				}
 			}
 		}
 		pool.flush();
-		response.sendRedirect("/extract-image-using-mapreduce.jsp");
+		response.sendRedirect("/extract-image-processing.jsp");
 	}
 
 }

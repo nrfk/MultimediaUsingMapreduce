@@ -1,4 +1,4 @@
-package fr.telecomParistech.mapreduce;
+package fr.telecomParistech.example.mapreduce;
 
 import java.util.Date;
 import java.util.logging.Logger;

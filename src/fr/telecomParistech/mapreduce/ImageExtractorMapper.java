@@ -23,8 +23,8 @@ import com.google.appengine.api.images.ServingUrlOptions;
 import com.google.appengine.tools.mapreduce.Mapper;
 
 import fr.telecomParistech.image.bitmap.ConvertUtility;
-import fr.telecomParistech.mp4parser.H264Parser;
-import fr.telecomParistech.mp4parser.MP4Parser;
+import fr.telecomParistech.parser.H264Parser;
+import fr.telecomParistech.parser.MP4Parser;
 
 /**
  * This is the Mapper function of the Map-Reduce extractor.

@@ -30,7 +30,7 @@ import fr.telecomParistech.mapreduce.ImageExtractorReducer;
 
 public class PipelineMapreduceServlet extends HttpServlet {
 	private static final long serialVersionUID = 1624900710626309961L;
-	private static final Logger log = Logger.getLogger(CountEntityServlet.class.getName());
+	private static final Logger log = Logger.getLogger(EntityCounterServlet.class.getName());
 	private static final PipelineService pipelineService = PipelineServiceFactory.newPipelineService();
 	private static final boolean USE_BACKENDS = false;
 

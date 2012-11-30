@@ -35,7 +35,7 @@
 <BODY>
 	<H2>Process Dash</H2>
 	<em > <%= label%> </em>
-	<form action="extract-image-servlet" method="post">
+	<form action="mpd-parser-servlet" method="post">
        <input type="text" name="<%= SENDER_URL %>" size="50">
        <input type="submit" value="Submit">
    </form>

@@ -1,4 +1,4 @@
-package fr.telecomParistech.mp4parser;
+package fr.telecomParistech.parser;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -69,6 +69,10 @@ public class MP4Parser {
 		
 		// Current offset to the beginning of file
 		int offset = 0;
+		
+		if (segmentData == null) {
+			return null;
+		}
 		
 		IsoFile isoFile = getIsoFile(segmentData);
 		if (isoFile == null) {
@@ -542,6 +546,7 @@ public class MP4Parser {
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
+			System.exit(0);
 		}
 		return isoFile;
 	}
