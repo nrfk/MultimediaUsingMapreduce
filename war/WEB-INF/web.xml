@@ -37,7 +37,7 @@
 	    <url-pattern>/_ah/pipeline/*</url-pattern>
   	</servlet-mapping>
   	
-  	  	<!-- Security constraint -->
+	<!-- Security constraint -->
   	<security-constraint>
 	  	<web-resource-collection>
 	    	<url-pattern>/mapreduce/*</url-pattern>
@@ -76,6 +76,8 @@
 	    <servlet-name>EntityCounterServlet</servlet-name>
 	    <url-pattern>/entity-counter-servlet</url-pattern>
   	</servlet-mapping>
+  	
+  	
   	
   	<!-- ****************** MapReduce Processing Demo*********************** -->
   	<!-- MPDParserServlet -->

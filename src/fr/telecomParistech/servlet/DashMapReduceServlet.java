@@ -36,7 +36,7 @@ import fr.telecomParistech.mapreduce.DashReducer;
  *
  */
 public class DashMapReduceServlet extends HttpServlet {
-	private static final long serialVersionUID = 5366478568593641461L;	
+	private static final long serialVersionUID = 5366478568593641461L;
 	private static final Logger log = 
 			Logger.getLogger(EntityCounterServlet.class.getName());
 	static {

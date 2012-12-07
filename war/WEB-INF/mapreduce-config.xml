@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+    
+    <!-- MapReduce-related configurations -->
+    <mapreduce>
+        <map-task> 5 </map-task>
+        <reduce-task> 1 </reduce-task>
+        
+        <!-- Set time unit for time-related log (for e.x. processing time of
+        mapper/reducer function, total processing time... in this application. 
+        Several types are avalables, including these following types:
+        NANOSECONDS , MICROSECONDS , MILLISECONDS , SECONDS , MINUTES.  
+        The default type is SECONDS -->
+        <time-unit> MICROSECONDS </time-unit>
+    </mapreduce>
+    
+    <!-- Result-related configuration -->
+    <result>
+        <images-per-row> 3 </images-per-row>
+        <!-- Set expected size for result image. Note that if these these two 
+        properties may not take into effect if the underlying platform does not 
+        allow it the the size is least than image's size,  -->
+        <image-width> 150 </image-width>
+        <image-height> 150 </image-height>
+    </result>
+    
+    <!--
+    	Log level, Accepted (descending order, case sensitive): 
+    	SEVERE (highest), WARNING, INFO, CONFIG, FINE, FINER, FINEST    -->
+    <log>
+        <!-- Log level of MPD Parser -->
+        <level-parser> INFO </level-parser>
+        
+        <!-- Log level of Mapper -->
+        <level-mapper> INFO </level-mapper>
+        
+        <!-- Log level of Reducer Parser -->
+        <level-reducer> INFO </level-reducer>
+        
+        <!-- Log level when displaying result -->
+        <level-display> INFO </level-display>
+    </log>
+    
+    
+</configuration>

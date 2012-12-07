@@ -2,6 +2,7 @@ package fr.telecomParistech.parser;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -9,14 +10,6 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.google.appengine.api.blobstore.BlobKey;
-import com.google.appengine.api.files.AppEngineFile;
-import com.google.appengine.api.files.FileService;
-import com.google.appengine.api.files.FileServiceFactory;
-import com.google.appengine.api.files.FileWriteChannel;
-import com.google.appengine.api.images.ImagesService;
-import com.google.appengine.api.images.ImagesServiceFactory;
-import com.google.appengine.api.images.ServingUrlOptions;
 import com.twilight.h264.decoder.AVFrame;
 import com.twilight.h264.decoder.AVPacket;
 import com.twilight.h264.decoder.H264Decoder;
@@ -53,9 +46,6 @@ public class H264Parser {
 	 * @return
 	 */
 	public byte[] parseH264Raw(byte[] h264Raw) {
-		FileService fileService = FileServiceFactory.getFileService();
-		ImagesService imagesService = ImagesServiceFactory.getImagesService();
-		int imageCounter = 0;
 		// Get Inputstream
 		InputStream inputStream = new ByteArrayInputStream(h264Raw);
 
@@ -205,12 +195,13 @@ public class H264Parser {
 
 						// Data in h264 is stored in reversed order as in 
 						// .bmp, so we need to "flip" up side down the image
-						for (int i = buffer.length - 1; i >= 0; i--) {
-							data = ConvertUtility.integerToByteArray(
-									buffer[i], 
-									ByteOrder.LITTLE_ENDIAN);
-
-							byteBuffer.put(data);
+						for (int i = avFrame.imageHeight - 1; i >= 0; i--) {
+							for (int j = 0; j < avFrame.imageWidth; j++) {
+								data = ConvertUtility.integerToByteArray(
+										buffer[avFrame.imageWidth*i + j], 
+										ByteOrder.LITTLE_ENDIAN);
+								byteBuffer.put(data);
+							}
 						}
 
 						// Full image
@@ -242,14 +233,11 @@ public class H264Parser {
 			} // while
 
 
-		} catch (ArrayIndexOutOfBoundsException arrayException) {
-			System.out.println("ArrayIndexOutOfBoundsException");
-			return null;
-		} catch (FileNotFoundException e) {
+		} catch (FileNotFoundException fe) {
 			LOGGER.info("Error while creating file");
-			e.printStackTrace();
-		} catch(Exception e) {
-			e.printStackTrace();
+			fe.printStackTrace();
+		} catch(IOException ioe) {
+			ioe.printStackTrace();
 		} finally {
 			try { inputStream.close(); } catch(Exception ee) {}
 		} // try

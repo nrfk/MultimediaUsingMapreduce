@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
@@ -12,6 +14,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.io.IOUtils;
 
 import com.google.appengine.api.datastore.Entity;
@@ -34,20 +37,53 @@ import fr.telecomParistech.parser.MP4Parser;
 
 public class MPDParserServlet extends HttpServlet {
 	private static final long serialVersionUID = 9114247753565601970L;
-	private static final Logger LOGGER; 
-	private static final FileService fileService; 
+	// Use FileService to work with file in GAE
+	private static final FileService fileService = 
+			FileServiceFactory.getFileService();
+
+	// use DatastoreMutationPool to persist entity, blob in batch, thus, 
+	// decrease the number of read/write operation
 	private static final transient DatastoreMutationPool pool =
 			DatastoreMutationPool.forManualFlushing();
-	
-	// Init
+
+	// Configuration-related properties
+	private static final Logger log;
+	private static final String CONFIG_FILE="WEB-INF/mapreduce-config.xml";
+	private static final XMLConfiguration mapreduceConfig;
+	private static final TimeUnit timeUnit;
+	// static initializer 
 	static {
-		LOGGER = Logger.getLogger(DashMpdParserServlet.class.getName());
-		fileService = FileServiceFactory.getFileService();
+		log = Logger.getLogger(DashMpdParserServlet.class.getName());
+		
+		// First, set log level in order to display log info during this 
+		// static initializer. It's also the default log level
+		log.setLevel(Level.INFO);
+		XMLConfiguration tmpConfig = null; 
+		try {
+			tmpConfig = new XMLConfiguration(CONFIG_FILE);
+		} catch (Exception e) {
+			log.severe("Couldn't read config file: " + CONFIG_FILE);
+			System.exit(1);
+		} finally {
+			mapreduceConfig = tmpConfig;
+			if (mapreduceConfig != null) {
+				String timeUnitStr = mapreduceConfig
+						.getString("mapreduce.time-unit","SECONDS");
+				timeUnit = TimeUnit.valueOf(timeUnitStr);
+
+				String logLevel = 
+						mapreduceConfig.getString("log.level-parser", "INFO");
+				log.setLevel(Level.parse(logLevel));
+
+			} else {
+				timeUnit = TimeUnit.SECONDS;
+			}
+		}
 	}
-			
+
 	/**
-	 * Create mpdFile from raw data inside the request		
-	 * @param request request which contains mpd's raw data 
+	 * Create mpdFile from raw data inside the request
+	 * @param request request which contains mpd's raw data
 	 * @return a reference to MPD object
 	 */
 	private MPD createMpdFile(HttpServletRequest request) {
@@ -63,12 +99,12 @@ public class MPDParserServlet extends HttpServlet {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		LOGGER.info("mpd file created...");
+		log.info("mpd file created...");
 		return mpd;
 	}
-	
+
 	/**
-	 * Get directory which contains mpd file from the fileUrl, for e.x, if 
+	 * Get directory which contains mpd file from the fileUrl, for e.x, if
 	 * the fileUrl is http://link/to/file.txt, the return will be "to" folder
 	 * @param fileUrl fileUrl to get directory
 	 * @return the folder containing the file
@@ -78,103 +114,117 @@ public class MPDParserServlet extends HttpServlet {
 		String dirUrl = fileUrl.substring(0, delimIndex);
 		return dirUrl;
 	}
-	
+
 	@Override
-	protected void doPost(HttpServletRequest request, 
+	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response)
-			throws ServletException, IOException {
-		
+					throws ServletException, IOException {
+		// Started time, il'll also be used later as a label for all of entities
+		// in this season. It helps the mapper function to process only entities
+		// generated in this session but not previous ones.
+		long startedTime = System.nanoTime();
+		log.info("MPDParser started at " + startedTime + " (absolute time)");
+		int segmentCounter = 0;
+
 		// ----- Create MPD file ----------
 		MPD mpd = createMpdFile(request);
 		if (mpd == null) {
-			response.sendRedirect("/process-dash.jsp?status=" + 
+			response.sendRedirect("/process-dash.jsp?status=" +
 					request.getAttribute("status"));
 			return;
 		}
-		LOGGER.finest(mpd.toString());
-		
+		log.finest(mpd.toString());
+
 		// ------- Ok, now parse it ------------
 		Entity entity = null;
 		List<Period> periods = mpd.getAllPeriod();
-		
+
 		// Get file and dirUrl
 		String fileUrl = request.getParameter("senderUrl");
 		String dirUrl = getDirectoryUrl(fileUrl);
+
+		// Store all segment full path
+		String segmentFullPaths = "";
 		// For each Period
 		for (Period period : periods) {
 			List<AdaptationSet> adaptationSets = period.getAllAdaptationSet();
 
 			// For each AdaptationSet in Period
 			for (AdaptationSet adaptationSet : adaptationSets) {
-				List<Representation> representations = 
+				List<Representation> representations =
 						adaptationSet.getAllRepresentation();
 
 				// For each Representation in AdaptationSet
 				for (Representation representation : representations) {
 					SegmentList segmentList = representation.getSegmentList();
-					
+
 					InitSegment initSegment = segmentList.getInitSegment();
-					String initSegmentPath = 
+					String initSegmentPath =
 							dirUrl + "/" + initSegment.getSourceURL();
 
-					List<MediaSegment> mediaSegments = 
+					List<MediaSegment> mediaSegments =
 							segmentList.getAllMediaSegment();
-					
+
 
 					MP4Parser mp4Parser = new MP4Parser();
-					
-					 byte[] segmentData = null;
+
+					byte[] segmentData = null;
 					try {
 						URL initSegmentUrl = new URL(initSegmentPath);
-						segmentData = 
+						segmentData =
 								IOUtils.toByteArray(initSegmentUrl.openStream());
 					} catch (MalformedURLException e) {
-						// TODO Auto-generated catch block
+						log.severe("MalformedURLException, url: " 
+								+ initSegmentPath);
 						e.printStackTrace();
+						System.exit(1);
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
+						log.severe("IOException occurs during parsing...");
 						e.printStackTrace();
+						System.exit(1);
 					}
-					
+
 					String sps = mp4Parser.getSpsInHex(segmentData);
 					String pps = mp4Parser.getPpsInHex(segmentData);
-					int nalLengthSize = 
+					int nalLengthSize =
 							mp4Parser.getNalLengthSize(segmentData);
-					int videoTrackId = 
+					int videoTrackId =
 							mp4Parser.getVideoTrackBoxId(segmentData);
-					
+
 					String representationInfo = "";
-					representationInfo += "id=" + 
-								representation.getId() + ";";
-					representationInfo += "width=" + 
-								representation.getAttribute("width")+ ";";
-					representationInfo += "height=" + 
-								representation.getAttribute("height")+ ";";
-					representationInfo += "bandwidth=" + 
-								representation.getAttribute("bandwidth")+ ";";
-					
-					// For each media segment, create a new blob for storing 
+					representationInfo += "id=" +
+							representation.getId() + ";";
+					representationInfo += "width=" +
+							representation.getAttribute("width")+ ";";
+					representationInfo += "height=" +
+							representation.getAttribute("height")+ ";";
+					representationInfo += "bandwidth=" +
+							representation.getAttribute("bandwidth")+ ";";
+
+					// For each media segment, create a new blob for storing
 					// image after.
-					
+
 					for (MediaSegment mediaSegment : mediaSegments) {
 						Key key = KeyFactory.createKey(
-								"MediaSegmentInfo",  mediaSegment.getId());
+								// use startTime as an id for this session
+								"MediaSegmentInfo" + startedTime, 
+								mediaSegment.getId());
 						entity = new Entity(key);
-						
+
 						entity.setProperty(
-								"representationId", 
+								"representationId",
 								representation.getId());
 						entity.setProperty("sps", sps);
 						entity.setProperty("pps", pps);
 						entity.setProperty("nalLengthSize", nalLengthSize);
 						entity.setProperty("videoTrackId", videoTrackId);
-						entity.setProperty("representationInfo", 
+						entity.setProperty("representationInfo",
 								representationInfo);
-						
+
 						String relativeLocation = mediaSegment.getMedia();
-						entity.setProperty("url", dirUrl + "/" + 
+						entity.setProperty("url", dirUrl + "/" +
 								relativeLocation);
-						
+
 						// Create a new Blob File, as a place holder for storing
 						// image after.
 						AppEngineFile file = null;
@@ -182,19 +232,35 @@ public class MPDParserServlet extends HttpServlet {
 							try {
 								file = fileService
 										.createNewBlobFile("image/bmp");
+								// Add this path to segmentFullPaths, separate
+								// each iteam by space (path cannot have space, 
+								// so space separator just works well
+								segmentFullPaths += file.getFullPath() + " ";
 							} catch (IOException ignored) {
 								// Exception will be ignored
 							}
 						}
 						entity.setProperty("imageFullPath", file.getFullPath());
-						
+						segmentCounter++;
 						pool.put(entity);
 					}
 				}
 			}
 		}
 		pool.flush();
-		response.sendRedirect("/extract-image-processing.jsp");
+
+		// Log the execution time
+		long endTime = System.nanoTime();
+		log.info("MPDParser ended at " + endTime + "(absolute time)");
+		long elapsedTime = endTime - startedTime;
+		// Convert from nano second to mini second
+		log.info("MPDParser done in: " + 
+				timeUnit.convert(elapsedTime, timeUnit) + "("+ timeUnit +")");
+		
+		response.sendRedirect("/extract-image-processing.jsp?" +
+				"segmentCounter=" + segmentCounter + 
+				"&segmentFullPaths=" + segmentFullPaths + 
+				"&sessionId=" + startedTime);
 	}
 
 }

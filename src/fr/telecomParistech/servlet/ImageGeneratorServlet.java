@@ -1,5 +1,6 @@
 package fr.telecomParistech.servlet;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -10,6 +11,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.configuration.XMLConfiguration;
 
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreService;
@@ -35,11 +38,24 @@ public class ImageGeneratorServlet extends HttpServlet{
 			FileServiceFactory.getFileService();
 	private static final BlobstoreService blobstoreService = 
 			BlobstoreServiceFactory.getBlobstoreService();
-	private static final Logger log = 
-			Logger.getLogger(ImageGeneratorServlet.class.getName());
+	
+	private static final Logger log;
+	private static final String CONFIG_FILE="WEB-INF/dash-mapreduce-config.xml";
+	private static final XMLConfiguration config;
 	static {
+		log = Logger.getLogger(ImageGeneratorServlet.class.getName());
 		log.setLevel(Level.INFO);
+		XMLConfiguration tmp = null; 
+		try {
+			tmp = new XMLConfiguration(CONFIG_FILE);
+		} catch (Exception e) {
+			log.severe("Couldn't read config file: " + CONFIG_FILE);
+			System.exit(1);
+		} finally {
+			config = tmp;
+		}
 	}
+	
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
@@ -50,7 +66,6 @@ public class ImageGeneratorServlet extends HttpServlet{
 		if ((color == null) || (size == null)) {
 			return;
 		}
-		
 		/// Set width
 		int width = 0;
 		int height = 0;

@@ -125,19 +125,23 @@ public class BitmapHeader {
 	 */
 	public void setAttribute(Attribute a, byte[] value) {
 		// Save value, use it offset as key
+		if (!attributes.containsKey(a.getOffset())) {
+			headerLength += value.length;
+		} 
+		
 		attributes.put(a.getOffset(), value);
 		
-		String strValue = "";
-		for (byte b : value) {
-			String hex = Integer.toHexString(b & 0xFF);
-			if (hex.length() == 1) {
-				hex = "0" + hex;
-			}
-			strValue += hex + " ";
-		}
-		LOGGER.finest(Integer.toHexString(headerLength) 
-				+ ": " + a + " 		:" + strValue);
-		headerLength += value.length;
+//		String strValue = "";
+//		for (byte b : value) {
+//			String hex = Integer.toHexString(b & 0xFF);
+//			if (hex.length() == 1) {
+//				hex = "0" + hex;
+//			}
+//			strValue += hex + " ";
+//		}
+//		LOGGER.finest(Integer.toHexString(headerLength) 
+//				+ ": " + a + " 		:" + strValue);
+		
 	}
 
 	/**

@@ -1,9 +1,11 @@
 package fr.telecomParistech.parser;
 
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -47,8 +49,46 @@ import fr.telecomParistech.image.bitmap.ConvertUtility;
  *
  */
 public class MP4Parser {
-	private static final Logger LOGGER = 
+	private static final Logger log = 
 			Logger.getLogger(MP4Parser.class.getName());
+	
+	public byte[] createFirstImageFromDashSegment(
+			byte[] nalHeader, 
+			byte[] sps, 
+			byte[] pps, 
+			byte[] segmentData, 
+			int nalLengthSize, int videoTrackId) {
+		// We just want to get the first image. This function is dedicated to 
+		// the image extractor mapreduce
+		boolean justFirstImage = true;
+		return createH264rawDataFromDashSegment(
+				nalHeader, 
+				sps, 
+				pps, 
+				segmentData, 
+				nalLengthSize, 
+				videoTrackId, 
+				justFirstImage);
+	}
+	
+	public byte[] createH264rawDataFromDashSegment(
+			byte[] nalHeader, 
+			byte[] sps, 
+			byte[] pps, 
+			byte[] segmentData, 
+			int nalLengthSize, int videoTrackId) {
+		
+		// We won't to get just the first image, so we get all
+		boolean justFirstImage = false;
+		return createH264rawDataFromDashSegment(
+				nalHeader, 
+				sps, 
+				pps, 
+				segmentData, 
+				nalLengthSize, 
+				videoTrackId, 
+				justFirstImage);
+	}
 	
 	/**
 	 * Create H264 raw data From Dash Segment
@@ -60,22 +100,24 @@ public class MP4Parser {
 	 * @param videoTrackId
 	 * @return a byte array contains h264 raw data
 	 */
-	public byte[] createH264rawDataFromDashSegment(
+	private byte[] createH264rawDataFromDashSegment(
 			byte[] nalHeader, 
 			byte[] sps, 
 			byte[] pps, 
 			byte[] segmentData, 
-			int nalLengthSize, int videoTrackId) {
+			int nalLengthSize, int videoTrackId, boolean justFirstImage) {
 		
 		// Current offset to the beginning of file
 		int offset = 0;
 		
 		if (segmentData == null) {
+			log.info("SegmentData is null, cannot create h264 file");
 			return null;
 		}
 		
 		IsoFile isoFile = getIsoFile(segmentData);
 		if (isoFile == null) {
+			log.info("Cannot create iso file");
 			return null;
 		}
 		
@@ -122,16 +164,28 @@ public class MP4Parser {
 			while (current < movieFragmentBoxes.size()) {
 				MovieFragmentBox movieFragmentBox = 
 						movieFragmentBoxes.get(current);
-
 				int videoTrack = videoTrackId; // get Video Track
 
 				// Get TrackRunBox, which contains Sample Inside
 				TrackRunBox trackRunBox = 
 						getVideoTrackRunBox(movieFragmentBox, videoTrack);
-
-				if (trackRunBox == null) {
-					byteArrayOutputStream.close();
-					return null;
+				
+				// 
+				if (trackRunBox == null ) {
+					
+					// If current > 0 (we've succeeded in reading some video 
+					// segment before) In this case, number of video resources
+					// is least than number of audio resource, we simply return
+					// the result (sooner return)
+					if (current > 0) {
+						byte[] result = byteArrayOutputStream.toByteArray();
+						byteArrayOutputStream.close();
+						return result;
+					} else { // cannot parse
+						byteArrayOutputStream.close();
+						return null;
+					}
+					
 				}
 				
 				// Offset of each sample in TrackRunBox
@@ -151,6 +205,16 @@ public class MP4Parser {
 					sampleData = getH264DataOf(sampleData, nalLengthSize);
 					// write to output
 					byteArrayOutputStream.write(sampleData);
+					
+					// Just want the first sample (which is a I-sample)
+					// return early if we just want to get the first image. Dont
+					// need to process the rest
+					if (justFirstImage) {
+						sampleData = byteArrayOutputStream.toByteArray();
+						byteArrayOutputStream.close();
+						return sampleData;
+					}
+					
 				}
 
 				// Update offset, index.
@@ -163,7 +227,9 @@ public class MP4Parser {
 			if (byteArrayOutputStream != null) {
 				try {
 					byteArrayOutputStream.close();
-				} catch (Exception e) {}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 		}
 		
@@ -235,14 +301,14 @@ public class MP4Parser {
 			return buffer;
 
 		} catch (IOException ioe) {
-			LOGGER.severe("IOException, file: " + filePath);
+			log.severe("IOException, file: " + filePath);
 		} finally {
 			try {
 				if (byteArrayOutputStream != null) {
 					byteArrayOutputStream.close();
 				}
 			} catch (Exception e) {
-				LOGGER.severe("Error while closing stream.");
+				log.severe("Error while closing stream.");
 				e.printStackTrace();
 			}
 		}
@@ -493,10 +559,10 @@ public class MP4Parser {
 			fileInputStream = new FileInputStream(filePath);
 			isoFile = new IsoFile(fileInputStream.getChannel());
 		} catch (FileNotFoundException fe) {
-			LOGGER.info("File not found: " + filePath);
+			log.info("File not found: " + filePath);
 			fe.printStackTrace();
 		} catch (IOException ioe) {
-			LOGGER.info("IO exception");
+			log.info("IO exception");
 			ioe.printStackTrace();
 		} finally {
 			try {
@@ -507,7 +573,7 @@ public class MP4Parser {
 					fileInputStream.close();
 				}
 			} catch (IOException e) {
-				LOGGER.info("Error while closing stream");
+				log.info("Error while closing stream");
 				e.printStackTrace();
 			}
 		}
@@ -908,24 +974,7 @@ public class MP4Parser {
 		return ByteBuffer.wrap(sampleData);
 
 	}
-
-	/**
-	 * Get VideoTrackBox form movieBox
-	 * @param movieBox movieBox to get the track box
-	 * @return TrackBox
-	 */
-	private TrackBox getVideoTrackBox(MovieBox movieBox) {
-		List<TrackBox> trackBoxList = movieBox.getBoxes(TrackBox.class);
-		for (TrackBox trackBox : trackBoxList) {
-			MediaBox mediaBox = trackBox.getMediaBox();
-			HandlerBox handlerBox = mediaBox.getHandlerBox();
-			String type = handlerBox.getHandlerType();
-			if (type.equalsIgnoreCase("VIDE")) {
-				return trackBox;
-			}
-		}
-		return null;
-	}
+	
 
 	private int getVideoTrackBoxId(IsoFile isoFile) {
 		MovieBox movieBox = isoFile.getMovieBox();
@@ -944,6 +993,24 @@ public class MP4Parser {
 		}
 		
 		return -1;
+	}
+	
+	/**
+	 * Get VideoTrackBox form movieBox
+	 * @param movieBox movieBox to get the track box
+	 * @return TrackBox
+	 */
+	private TrackBox getVideoTrackBox(MovieBox movieBox) {
+		List<TrackBox> trackBoxList = movieBox.getBoxes(TrackBox.class);
+		for (TrackBox trackBox : trackBoxList) {
+			MediaBox mediaBox = trackBox.getMediaBox();
+			HandlerBox handlerBox = mediaBox.getHandlerBox();
+			String type = handlerBox.getHandlerType();
+			if (type.equalsIgnoreCase("VIDE")) {
+				return trackBox;
+			}
+		}
+		return null;
 	}
 	
 	public int getVideoTrackBoxId(byte[] videoHeader) {
@@ -1002,7 +1069,7 @@ public class MP4Parser {
 		int videoTrackId = mp4Parser.getVideoTrackBoxId(header);
 		System.out.println("videoTrackId: " + videoTrackId); 
 		
-		URL segmentUrl = new URL("https://dl.dropbox.com/u/27889409/muma/sample-dash/sample-dash3/sample_iPod_out3.m4s");
+		URL segmentUrl = new URL("https://dl.dropbox.com/u/27889409/muma/sample-dash/sample-dash3/sample_iPod_out6.m4s");
 		byte[] segmentData = IOUtils.toByteArray(segmentUrl.openStream());
 		
 		
@@ -1028,143 +1095,7 @@ public class MP4Parser {
 		//		System.out.println(mp4Parser.getSampleSize(1, filePath));
 		//		System.out.println(ConvertUtility.byteArrayToHext(sampleData));
 
-		LOGGER.info("done");
+		log.info("done");
 	}
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-///**
-// * Create H264 raw data From Dash Segment
-// * @param filePath path to .m4s file.
-// * @param sps Sequence Parameter Set obtained from its init file.
-// * @param pps Picture Parameter Set obtained from its init file.
-// * @return the H264 raw type
-// */
-//public byte[] createH264rawDataFromDashSegment(File filePath, 
-//		byte[] sps, byte[] pps, int nalLengthSize, int videoTrackId) {
-//
-//	// Nal header
-//	byte[] nalHeader = {
-//			0x00,
-//			0x00,
-//			0x00, 
-//			0x01}; 
-//
-//	IsoFile isoFile = getIsoFile(filePath);
-//
-//	// Current offset to the beginning of file
-//	int offset = 0;
-//
-//	// Update offset, SegmentTypeBox
-//	SegmentTypeBox segmentTypeBox = 
-//			isoFile.getBoxes(SegmentTypeBox.class).get(0);
-//	if (segmentTypeBox != null) {
-//		offset += segmentTypeBox.getSize();
-//	}
-//
-//	// Update offset, SegmentTypeBox
-//	SegmentIndexBox segmentIndexBox = 
-//			isoFile.getBoxes(SegmentIndexBox.class).get(0);
-//	offset += segmentIndexBox.getSize();
-//
-//	List<SegmentIndexBox.Entry> entries = 
-//			segmentIndexBox.getEntries();
-//	List<MovieFragmentBox> movieFragmentBoxes =
-//			isoFile.getBoxes(MovieFragmentBox.class);
-//
-//
-//	// Current MovieFramentBox
-//	int current = 0;
-//	ByteArrayOutputStream byteArrayOutputStream = null;
-//
-//	try {
-//		byteArrayOutputStream =  new ByteArrayOutputStream();
-//
-//		// read whole video data into byte array
-//		byte[] videoData = 
-//				FileUtils.readFileToByteArray(filePath);
-//		// If file is too large, throw an Runtime Exception, because casting 
-//		// will not work here. Note that it's a RUN TIME exception
-//		if (videoData.length > Integer.MAX_VALUE) {
-//			throw new FileTooLargeException(videoData.length);
-//		}
-//
-//		// Write SPS 
-//		byteArrayOutputStream.write(nalHeader);
-//		byteArrayOutputStream.write(sps);
-//
-//		// Write PPS 
-//		byteArrayOutputStream.write(nalHeader);
-//		byteArrayOutputStream.write(pps);
-//
-//
-//		while (current < movieFragmentBoxes.size()) {
-//			MovieFragmentBox movieFragmentBox = 
-//					movieFragmentBoxes.get(current);
-//
-//			int videoTrack = videoTrackId; // getVideoTrack();
-//
-//			TrackRunBox trackRunBox = 
-//					getVideoTrackRunBox(movieFragmentBox, videoTrack);
-//
-//			// Offset of each sample in TrackRunBox
-//			int subOffset = offset + trackRunBox.getDataOffset();
-//			List<TrackRunBox.Entry> trackRunEntries = 
-//					trackRunBox.getEntries();
-//			for (TrackRunBox.Entry entry : trackRunEntries) {
-//				int sampleSize = (int) entry.getSampleSize();
-//				byte[] sampleData = new byte[sampleSize];
-//				// read sample data
-//				System.arraycopy(videoData, subOffset, 
-//						sampleData, 0, sampleSize);
-//				subOffset += sampleSize;
-//
-////				System.out.println(
-////						ConvertUtility.byteArrayToHext(sampleData));
-//
-//				// convert to .H264
-//				sampleData = getH264DataOf(sampleData, nalLengthSize);
-//
-//				byteArrayOutputStream.write(sampleData);
-//			}
-//
-//			offset += entries.get(current)
-//					.getReferencedSize();
-//			current++;
-//		}
-//	} catch (IOException e) {
-//		e.printStackTrace();
-//	}  finally {
-//		if (byteArrayOutputStream != null) {
-//			try {
-//				byteArrayOutputStream.close();
-//			} catch (Exception e) {}
-//		}
-//	}
-//
-//	if (byteArrayOutputStream == null) {
-//		return null;
-//	} else {
-//
-//		return byteArrayOutputStream.toByteArray();
-//	}
-//}

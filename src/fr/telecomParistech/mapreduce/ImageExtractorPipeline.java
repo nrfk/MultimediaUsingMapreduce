@@ -41,7 +41,7 @@ public class ImageExtractorPipeline extends Job1<String, String>{
 		futureCall(new JobSavingVideoData(), entityList);
 		
 		// Create Map Reduce task
-		int mapShardCount = 5;
+		int mapShardCount = 10;
 		int reduceShardCount = 1;
 		
 		MapReduceSpecification<	Entity, // I
