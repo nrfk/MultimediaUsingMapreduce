@@ -11,7 +11,7 @@
         Several types are avalables, including these following types:
         NANOSECONDS , MICROSECONDS , MILLISECONDS , SECONDS , MINUTES.  
         The default type is SECONDS -->
-        <time-unit> MICROSECONDS </time-unit>
+        <time-unit> MILLISECONDS </time-unit>
     </mapreduce>
     
     <!-- Result-related configuration -->

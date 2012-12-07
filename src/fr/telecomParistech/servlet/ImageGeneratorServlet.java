@@ -40,7 +40,7 @@ public class ImageGeneratorServlet extends HttpServlet{
 			BlobstoreServiceFactory.getBlobstoreService();
 	
 	private static final Logger log;
-	private static final String CONFIG_FILE="WEB-INF/dash-mapreduce-config.xml";
+	private static final String CONFIG_FILE="WEB-INF/mapreduce-config.xml";
 	private static final XMLConfiguration config;
 	static {
 		log = Logger.getLogger(ImageGeneratorServlet.class.getName());
