@@ -4,11 +4,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -35,6 +37,13 @@ import fr.telecomParistech.dash.mpd.Representation;
 import fr.telecomParistech.dash.mpd.SegmentList;
 import fr.telecomParistech.parser.MP4Parser;
 
+/**
+ * THis class receives requests which contain mpd file. It then parse the file 
+ * and forward parsed data to another servlet in order to do some post
+ * processing
+ * @author xuan-hoa.nguyen@telecom-paristech.fr
+ *
+ */
 public class MPDParserServlet extends HttpServlet {
 	private static final long serialVersionUID = 9114247753565601970L;
 	// Use FileService to work with file in GAE
@@ -123,7 +132,7 @@ public class MPDParserServlet extends HttpServlet {
 		// in this season. It helps the mapper function to process only entities
 		// generated in this session but not previous ones.
 		long startedTime = System.nanoTime();
-		log.info("MPDParser started at " + startedTime + " (absolute time)");
+		log.info("MPDParser started at " + startedTime + " (ABSULUTE TIME)");
 		int segmentCounter = 0;
 
 		// ----- Create MPD file ----------
@@ -145,6 +154,7 @@ public class MPDParserServlet extends HttpServlet {
 
 		// Store all segment full path
 		String segmentFullPaths = "";
+		List<String> fullPathList = new ArrayList<String>();
 		// For each Period
 		for (Period period : periods) {
 			List<AdaptationSet> adaptationSets = period.getAllAdaptationSet();
@@ -236,6 +246,7 @@ public class MPDParserServlet extends HttpServlet {
 								// each iteam by space (path cannot have space, 
 								// so space separator just works well
 								segmentFullPaths += file.getFullPath() + " ";
+								fullPathList.add(file.getFullPath());
 							} catch (IOException ignored) {
 								// Exception will be ignored
 							}
@@ -251,16 +262,35 @@ public class MPDParserServlet extends HttpServlet {
 
 		// Log the execution time
 		long endTime = System.nanoTime();
-		log.info("MPDParser ended at " + endTime + "(absolute time)");
+		log.info("MPDParser ended at " + endTime + " (ABSULUTE TIME)");
 		long elapsedTime = endTime - startedTime;
 		// Convert from nano second to mini second
 		log.info("MPDParser done in: " + 
-				timeUnit.convert(elapsedTime, timeUnit) + "("+ timeUnit +")");
+				timeUnit.convert(elapsedTime, TimeUnit.NANOSECONDS) + 
+				" ("+ timeUnit +")");
 		
-		response.sendRedirect("/extract-image-processing.jsp?" +
-				"segmentCounter=" + segmentCounter + 
-				"&segmentFullPaths=" + segmentFullPaths + 
-				"&sessionId=" + startedTime);
+		String dispatchedLink = "/extract-image-processing.jsp";
+		
+		// Save full path list and number of media segment for later use.
+		request.setAttribute("fullPathList", fullPathList);
+		request.setAttribute("segmentCounter", segmentCounter);
+		
+		// The mapreduce function read entity as its input, and as we just want
+		// to read all entities in this session by mapper function, but not 
+		// entities used by previous mapper function, we create an session id
+		// which is a unique time stamp to distinguish between these entities
+		request.setAttribute("sessionId", "" + startedTime ); // String form
+		
+		// Acknowledge as the sender of this request (to distinguish with 
+		// the retry request in extract-image-processing.jsp
+		request.setAttribute("sentByParser", true);
+		
+		log.info("redirect to: " + dispatchedLink);
+		RequestDispatcher dispatcher = 
+				request.getRequestDispatcher(dispatchedLink);
+		
+		dispatcher.forward(request, response);
+		
 	}
 
 }

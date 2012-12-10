@@ -20,7 +20,7 @@
         <!-- Set expected size for result image. Note that if these these two 
         properties may not take into effect if the underlying platform does not 
         allow it the the size is least than image's size,  -->
-        <image-width> 150 </image-width>
+        <image-width> 30 </image-width>
         <image-height> 150 </image-height>
     </result>
     

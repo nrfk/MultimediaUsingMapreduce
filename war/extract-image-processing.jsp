@@ -1,3 +1,5 @@
+<%@page import="sun.reflect.misc.FieldUtil"%>
+<%@page import="javax.persistence.criteria.CriteriaBuilder.In"%>
 <%@page import="java.util.concurrent.TimeUnit"%>
 <%@page import="java.util.logging.Level"%>
 <%@page import="org.apache.commons.configuration.XMLConfiguration"%>
@@ -23,7 +25,7 @@
 	private static final String PIPELINE_ID_PARAM_NAME = "pipelineId";
 	private static final String CLEANUP_PIPELINE_ID_PARAM_NAME = "cleanupId";
 	private static final String SEGMENT_COUNTER = "segmentCounter";
-	private static final String SEGMENT_FULL_PATHS = "segmentFullPaths";
+	private static final String SEGMENT_PATHS = "segmentPaths";
 	private static final String SESSION_ID = "sessionId";
 	
 	private static final int IMAGES_PER_ROW;
@@ -63,7 +65,8 @@
 						.getString("mapreduce.time-unit","SECONDS");
 				timeUnit = TimeUnit.valueOf(timeUnitStr);
 				
-				String logLevel = mapreduceConfig.getString("log.level-display", "INFO");
+				String logLevel = 
+						mapreduceConfig.getString("log.level-display", "INFO");
 				log.setLevel(Level.parse(logLevel));
 			} else {
 				IMAGES_PER_ROW = 4; 
@@ -96,59 +99,72 @@ h4.withperiod {
 	<H2>Image Extractor Service</H2>
 
 	<%
+		// Check to see if it's a request sent by parser or a refresh request.
+		Boolean isSentByParser = (Boolean) request.getAttribute("sentByParser");
+		if (isSentByParser == null) {
+			isSentByParser = false;
+		}
+
+		// Ok, get some information from previous request
 		String text = request.getParameter(TEXT_PARAM_NAME);
 		if (text != null
 				&& (text.equalsIgnoreCase("null") || text.equals(""))) {
 			text = null;
 		}
-
-		String pipelineId = request.getParameter(PIPELINE_ID_PARAM_NAME);
-		if (pipelineId != null
-				&& (pipelineId.equalsIgnoreCase("null") || pipelineId
-						.equals(""))) {
-			pipelineId = null;
-		}
-
-		String cleanupId = request
-				.getParameter(CLEANUP_PIPELINE_ID_PARAM_NAME);
-		if (cleanupId != null
-				&& (cleanupId.equalsIgnoreCase("null") || cleanupId
-						.equals(""))) {
-			cleanupId = null;
-		}
-
-		int segmentCouter = 
-				Integer.parseInt(request.getParameter(SEGMENT_COUNTER));
-		int imageRows = (int) Math.round(Math.ceil((float)segmentCouter/IMAGES_PER_ROW));
+		String pipelineId = null; // pipelineId of this processing
+		String cleanupId = null; // cleanupId of this processing
+		int segmentCounter = 0; // Number of segment data
+		String[] segmentPaths = null;
 		
-		String segmentFullPaths = request.getParameter("segmentFullPaths"); 
-		if (segmentFullPaths != null
-				&& (segmentFullPaths.equalsIgnoreCase("null") || segmentFullPaths.equals(""))) {
-			segmentFullPaths = null;
+		// number of image, as we will display each image per media segment 
+		// the number of image is equal to number of segment
+		int nImages = 0; 
+		
+		// The mapreduce function read entity as its input, and as we just want
+		// to read all entities in this session by mapper function, but not 
+		// entities used by previous mapper function, we create an session id
+		// which is a unique time stamp to distinguish between these entities
+		String sessionId = "";
+		if (isSentByParser) {
+			segmentCounter = (Integer) request.getAttribute(SEGMENT_COUNTER);
+			// The parser always sends us List<String> contains list of segment
+			// So we can safety supress this casting warning
+			@SuppressWarnings("unchecked")
+			List<String> fullPathList = 
+					(List<String>)request.getAttribute("fullPathList");
+			segmentPaths = 
+					fullPathList.toArray(new String[fullPathList.size()]);
+			
+			sessionId = (String) request.getAttribute(SESSION_ID);
+			nImages = (Integer) request.getAttribute(SEGMENT_COUNTER);
+		} else { // No, it's a refresh request.
+			pipelineId = request.getParameter(PIPELINE_ID_PARAM_NAME);
+			cleanupId = request.getParameter(CLEANUP_PIPELINE_ID_PARAM_NAME);
+			segmentPaths = request.getParameter(SEGMENT_PATHS).split(" ");
+			nImages = Integer.parseInt(request.getParameter("segmentCounter"));
+			segmentCounter =
+					Integer.parseInt(request.getParameter(SEGMENT_COUNTER));
 		}
+
+		// Calculate rows of image 
+		int imageRows = (int) Math.round(
+				Math.ceil((float)segmentCounter/IMAGES_PER_ROW));
 		
 		if (null != cleanupId) {
 			service.deletePipelineRecords(cleanupId);
 		}
-		
 	%>
-
 	<p>
-
 		<%
-		String sessionId = request.getParameter(SESSION_ID);
-		if (sessionId != null
-				&& (sessionId.equalsIgnoreCase("null") || sessionId.equals(""))) {
-			sessionId = "";
-		}
-		
 		if (null == pipelineId) {
 			int mapShardCount = mapreduceConfig.getInt("mapreduce.map-task",5);
 			int reduceShardCount = 
 					mapreduceConfig.getInt("mapreduce.reduce-task", 1);
-			MapReduceSpecification<Entity, Integer, String, KeyValue<Integer,String>, List<List<KeyValue<Integer,String>>>> mrSpec = MapReduceSpecification
-					.of("Image Extractor", new DatastoreInput(
-							"MediaSegmentInfo" + sessionId, mapShardCount),
+			MapReduceSpecification<Entity, Integer, String, KeyValue<Integer,String>, List<List<KeyValue<Integer,String>>>> mrSpec = 
+					MapReduceSpecification.of(
+							"Image Extractor", new DatastoreInput(
+									"MediaSegmentInfo" + sessionId,
+									mapShardCount),
 							new ImageExtractorMapper(), Marshallers
 									.getIntegerMarshaller(), Marshallers
 									.getStringMarshaller(),
@@ -184,8 +200,12 @@ h4.withperiod {
 			
 		
 		<%
+			// As the mapreduce configuration specified, the result always in 
+			// the form <List<List<KeyValue<Integer,String>>>>
+			// So we can safety supress this casting warning
+			@SuppressWarnings("unchecked")
 			MapReduceResult<List<List<KeyValue<Integer,String>>>> mrResult = 
-				(MapReduceResult<List<List<KeyValue<Integer,String>>>>) jobInfo.getOutput();
+					(MapReduceResult<List<List<KeyValue<Integer,String>>>>) jobInfo.getOutput();
 			List<KeyValue<Integer,String>> outputList = mrResult.getOutputResult().get(0);
 			
 			// Get iterator
@@ -223,30 +243,24 @@ h4.withperiod {
 			}
 		%>
 		</table>
-	<form method="post" >
-		<input name="<%=TEXT_PARAM_NAME%>" value="" type="hidden"> 
-		<input name="<%=PIPELINE_ID_PARAM_NAME%>" value="" type="hidden"> 
-		<input name="<%=CLEANUP_PIPELINE_ID_PARAM_NAME%>" value="<%=pipelineId%>" type="hidden"> 
-		<input type="submit" value="Do it again" >
-	</form>
-	
 	
 	<%
 			break;
 		case RUNNING:
 			// Parse segmentFullPaths to get item
-			String[] items = segmentFullPaths.split(" ");
+			StringBuilder backupSegmentPaths = new StringBuilder();
 			out.print("<table border='1'>");
-			int nImages = Integer.parseInt(request.getParameter("segmentCounter"));
+			
 			for (int i = 0; i < imageRows; i++) {
 				out.print("<tr>");
 				for (int j = 0; j < IMAGES_PER_ROW; j++) {
 					if (nImages > 0) { // Placeholder
-						out.print("<td height='" + IMAGES_HEIGHT + " ' width='"+IMAGES_WIDTH+"'>" + items[i*IMAGES_PER_ROW + j]  + "</td>");	
+						out.print("<td height='" + IMAGES_HEIGHT + " ' width='"+IMAGES_WIDTH+"' >" + segmentPaths[i*IMAGES_PER_ROW + j]  + "</td>");	
 					} else { // Padding
-						out.print("<td height='" + IMAGES_HEIGHT + " ' width='"+IMAGES_WIDTH+"'> .  </td>");
+						out.print("<td height='" + IMAGES_HEIGHT + " ' width='"+IMAGES_WIDTH+"' > .  </td>");
 					}
 					nImages--;
+					backupSegmentPaths.append(segmentPaths[i] + " ");
 				}
 				out.print("</tr>");
 			}
@@ -257,10 +271,11 @@ h4.withperiod {
 	
 	<img src="loading.gif" alt="Now loading" height="200" width="200">
 	
-	<form method="post" id="polling-form">
+	<form method="post" id="polling-form" action="extract-image-processing.jsp">
 		<input name="<%=TEXT_PARAM_NAME%>" value="<%=text%>" type="hidden">
-		<input name="<%=SEGMENT_FULL_PATHS%>" value="<%=segmentFullPaths%>" type="hidden">
+		<input name="<%=SEGMENT_PATHS%>" value="<%=backupSegmentPaths.toString()%>" type="hidden">
 		<input name="<%=PIPELINE_ID_PARAM_NAME%>" value="<%=pipelineId%>"type="hidden"> 
+		<input name="<%=SEGMENT_COUNTER%>" value="<%=segmentCounter%>"type="hidden">
 		<input type="submit" value="Check Again" style="visibility:hidden;">
 	</form>
 	<script type="text/javascript">

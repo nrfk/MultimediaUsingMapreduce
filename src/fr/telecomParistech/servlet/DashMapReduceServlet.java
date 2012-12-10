@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -14,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.configuration.XMLConfiguration;
 
 import com.google.appengine.demos.mapreduce.entitycount.EntityCounterServlet;
+import com.google.appengine.tools.mapreduce.KeyValue;
 import com.google.appengine.tools.mapreduce.MapReduceJob;
 import com.google.appengine.tools.mapreduce.MapReduceResult;
 import com.google.appengine.tools.mapreduce.MapReduceSettings;
@@ -150,6 +152,8 @@ public class DashMapReduceServlet extends HttpServlet {
 			}
 			
 //			Object result = jobInfo.getOutput();
+			
+			@SuppressWarnings("unchecked")
 			MapReduceResult<ImmutableList<ImmutableList<String>>> result =  
 					(MapReduceResult<ImmutableList<ImmutableList<String>>>) 
 							jobInfo.getOutput();
@@ -163,7 +167,6 @@ public class DashMapReduceServlet extends HttpServlet {
 			pw.write(xml);
 			pw.write("************************");
 			pw.close();
-			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

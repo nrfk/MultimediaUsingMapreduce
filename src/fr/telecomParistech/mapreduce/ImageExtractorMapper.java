@@ -83,7 +83,7 @@ public class ImageExtractorMapper extends Mapper<Entity, Integer, String>{
 		int id = counter.incrementAndGet();
 		long startedTime = System.nanoTime();
 		log.info("Mapper #" + id + " started at " +
-				startedTime+ " (absolute time)");
+				startedTime+ " (ABSULUTE TIME)");
 
 		// Get some information which we obtained from parsing mpd fife in 
 		// the previous step.
@@ -96,6 +96,10 @@ public class ImageExtractorMapper extends Mapper<Entity, Integer, String>{
 		MP4Parser mp4Parser = new MP4Parser();
 		URL url = null;
 		byte[] segmentData = null;
+		
+		long startDownTime = System.nanoTime();
+		log.info("Mapper #" + id + " starts dowload segment data at: " + 
+				startDownTime + (" (ABSULUTE TIME)"));
 		try {
 			url = new URL(segmentUrl);
 			segmentData = IOUtils.toByteArray(url.openStream());
@@ -106,6 +110,14 @@ public class ImageExtractorMapper extends Mapper<Entity, Integer, String>{
 			System.exit(1);
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
+		} finally {
+			long endDownTime = System.nanoTime();
+			log.info("Mapper #" + id + " finishes dowload segment data at: " + 
+					endDownTime + (" (ABSULUTE TIME)"));
+			long downTime = endDownTime - startDownTime;
+			log.info("Mapper #" + id + " downloading done in: " + 
+					timeUnit.convert(downTime, TimeUnit.NANOSECONDS) + 
+					" ("+ timeUnit +")");
 		}
 
 		// nalHeader
@@ -131,16 +143,15 @@ public class ImageExtractorMapper extends Mapper<Entity, Integer, String>{
 		// cannot get h264 data, return.
 		if (h264Raw == null) {
 			// Log the execution time
-			// Log the execution time
 			long endTime = System.nanoTime();
 			log.info("Mapper #" + id + " ended at " + 
-					endTime + "(absolute time)");
+					endTime + " (ABSULUTE TIME)");
 			long elapsedTime = endTime - startedTime;
 
 			// Convert from nano second to mini second
-			log.info("Mapper #" + id + " done in: " + 
-					timeUnit.convert(elapsedTime, timeUnit) + 
-					"("+ timeUnit +")");
+			log.info("Mapper #" + id + " (downloading + processing) done in: " + 
+					timeUnit.convert(elapsedTime, TimeUnit.NANOSECONDS) + 
+					" ("+ timeUnit +")");
 			return;
 		}
 
@@ -192,13 +203,13 @@ public class ImageExtractorMapper extends Mapper<Entity, Integer, String>{
 
 		// Log the execution time
 		long endTime = System.nanoTime();
-		log.info("Mapper #" + id + " ended at " + endTime + "(absolute time)");
+		log.info("Mapper #" + id + " ended at " + endTime + " (ABSULUTE TIME)");
 		long elapsedTime = endTime - startedTime;
 
 		log.info("Mapper #" + id + " done in: " + 
-				timeUnit.convert(elapsedTime, timeUnit) + "("+ timeUnit +")");
+				timeUnit.convert(elapsedTime, TimeUnit.NANOSECONDS) + 
+				" ("+ timeUnit +")");
 	}
-
 }
 
 

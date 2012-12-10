@@ -61,7 +61,7 @@ extends Reducer<Integer, String, KeyValue<Integer, String>> {
 		int id = counter.incrementAndGet();
 		long startedTime = System.nanoTime();
 		log.info("Reducer #" + id + " started at " + 
-				startedTime + "(absolute time)");
+				startedTime + " (ABSULUTE TIME)");
 
 		// Collect all the results and out put it.
 		int i = 0;
@@ -73,11 +73,12 @@ extends Reducer<Integer, String, KeyValue<Integer, String>> {
 
 		// Done Log the execution time
 		long endTime = System.nanoTime();
-		log.info("Reducer #" + id + " ended at: " + endTime + "(absolute time)");
+		log.info("Reducer #" + id + " ended at: " + endTime + " (ABSULUTE TIME)");
 		long elapsedTime = endTime - startedTime;
 
 		log.info("Reducer #" + id + " done in: " + 
-				timeUnit.convert(elapsedTime, timeUnit) + "("+ timeUnit +")");
+				timeUnit.convert(elapsedTime, TimeUnit.NANOSECONDS) + 
+				" ("+ timeUnit +")");
 	}
 
 }
