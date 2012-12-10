@@ -38,7 +38,7 @@ import fr.telecomParistech.dash.mpd.SegmentList;
 import fr.telecomParistech.parser.MP4Parser;
 
 /**
- * THis class receives requests which contain mpd file. It then parse the file 
+ * This class receives requests which contain mpd file. It then parse the file 
  * and forward parsed data to another servlet in order to do some post
  * processing
  * @author xuan-hoa.nguyen@telecom-paristech.fr
@@ -99,6 +99,10 @@ public class MPDParserServlet extends HttpServlet {
 		String senderUrl = request.getParameter("senderUrl");
 		URL url = null;
 		MPD mpd = null;
+		
+		long startDownTime = System.nanoTime();
+		log.info("MPDParser starts dowload mpd file: "+ senderUrl +"at: " + 
+				startDownTime + (" (ABSULUTE TIME)"));
 		try {
 			url = new URL(senderUrl);
 			InputStream inputStream = url.openStream();
@@ -107,6 +111,14 @@ public class MPDParserServlet extends HttpServlet {
 			request.setAttribute("status", "malformedUrl");
 		} catch (IOException e) {
 			e.printStackTrace();
+		} finally {
+			long endDownTime = System.nanoTime();
+			log.info("MPDParser end dowload mpd file: "+ senderUrl +"at: "  + 
+					endDownTime + (" (ABSULUTE TIME)"));
+			long downTime = endDownTime - startDownTime;
+			log.info("MPDParser downloads file: "+ senderUrl +"in: "  + 
+					timeUnit.convert(downTime, TimeUnit.NANOSECONDS) + 
+					" ("+ timeUnit +")");
 		}
 		log.info("mpd file created...");
 		return mpd;
@@ -153,7 +165,6 @@ public class MPDParserServlet extends HttpServlet {
 		String dirUrl = getDirectoryUrl(fileUrl);
 
 		// Store all segment full path
-		String segmentFullPaths = "";
 		List<String> fullPathList = new ArrayList<String>();
 		// For each Period
 		for (Period period : periods) {
@@ -242,10 +253,7 @@ public class MPDParserServlet extends HttpServlet {
 							try {
 								file = fileService
 										.createNewBlobFile("image/bmp");
-								// Add this path to segmentFullPaths, separate
-								// each iteam by space (path cannot have space, 
-								// so space separator just works well
-								segmentFullPaths += file.getFullPath() + " ";
+								// Add this path to segmentFullPaths
 								fullPathList.add(file.getFullPath());
 							} catch (IOException ignored) {
 								// Exception will be ignored
