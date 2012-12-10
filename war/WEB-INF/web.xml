@@ -96,7 +96,7 @@
   	<servlet>
     	<servlet-name>ReadBlobServlet</servlet-name>
     	<servlet-class>
-    	  fr.telecomParistech.blobstore.ReadBlobServlet
+    	  fr.telecomParistech.servlet.ReadBlobServlet
    	    </servlet-class>
   	</servlet>
   	<servlet-mapping>

@@ -203,7 +203,7 @@ h4.withperiod {
 			// As the mapreduce configuration specified, the result always in 
 			// the form <List<List<KeyValue<Integer,String>>>>
 			// So we can safety supress this casting warning
-			@SuppressWarnings("unchecked")
+			@SuppressWarnings("unchecked") 
 			MapReduceResult<List<List<KeyValue<Integer,String>>>> mrResult = 
 					(MapReduceResult<List<List<KeyValue<Integer,String>>>>) jobInfo.getOutput();
 			List<KeyValue<Integer,String>> outputList = mrResult.getOutputResult().get(0);
@@ -226,15 +226,16 @@ h4.withperiod {
 					// Padding cell at the last row.
 					if (keyvalue == null) {
 						// Align padding
-						out.print("<td height='200' width='200'> . </td>");
+						out.print("<td height='200' width='200'> This is an align cell </td>");
 						continue;
 					}
 					
 					/* alt='Extracted Image' height='200' width='200' */
 					// Data cell
-					
+					int index = i*IMAGES_PER_ROW + j;
 					if (keyvalue.getValue().startsWith("http://")) { // If it's an image
-						out.print("<td height='" + IMAGES_HEIGHT + " ' width='"+IMAGES_WIDTH+"'><img src=" + keyvalue.getValue() + " > </td>");	
+						/* out.print("<td><img height='" + IMAGES_HEIGHT + " ' width='"+IMAGES_WIDTH+"' src=" + keyvalue.getValue() + "> </td>");	 */
+						out.print("<td ><image height='" + IMAGES_HEIGHT + " ' width='"+IMAGES_WIDTH+"' src='/read-blob-servlet?blobPath=" + segmentPaths[i*IMAGES_PER_ROW + j]  + "' alt='image loading...'></td>");
 					} else { // if it's an exception
 						out.print("<td height='" + IMAGES_HEIGHT + " ' width='"+IMAGES_WIDTH+"'> Exception while parsing image:" + keyvalue.getValue() + "</td>");
 					}
@@ -254,13 +255,18 @@ h4.withperiod {
 			for (int i = 0; i < imageRows; i++) {
 				out.print("<tr>");
 				for (int j = 0; j < IMAGES_PER_ROW; j++) {
+					int index = i*IMAGES_PER_ROW + j;
+					/* System.out.println("****************  " + index); */
 					if (nImages > 0) { // Placeholder
-						out.print("<td height='" + IMAGES_HEIGHT + " ' width='"+IMAGES_WIDTH+"' >" + segmentPaths[i*IMAGES_PER_ROW + j]  + "</td>");	
+						
+						out.print("<td ><image height='" + IMAGES_HEIGHT + " ' width='"+IMAGES_WIDTH+"' src='/read-blob-servlet?blobPath=" + segmentPaths[i*IMAGES_PER_ROW + j]  + "' alt='image loading...'></td>");
+						backupSegmentPaths.append(segmentPaths[i*IMAGES_PER_ROW + j] + " ");
+						nImages--;
 					} else { // Padding
-						out.print("<td height='" + IMAGES_HEIGHT + " ' width='"+IMAGES_WIDTH+"' > .  </td>");
+						out.print("<td height='" + IMAGES_HEIGHT + " ' width='"+IMAGES_WIDTH+"' > This is an align cell  </td>");
 					}
-					nImages--;
-					backupSegmentPaths.append(segmentPaths[i] + " ");
+					
+					
 				}
 				out.print("</tr>");
 			}
