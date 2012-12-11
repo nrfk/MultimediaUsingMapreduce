@@ -92,6 +92,30 @@
 	    <url-pattern>/mpd-parser-servlet</url-pattern>
   	</servlet-mapping>
   	
+  	<!-- MPDParserServlet -->
+  	<servlet>
+    	<servlet-name>ImageExtractorServlet</servlet-name>
+    	<servlet-class>
+    	  fr.telecomParistech.servlet.ImageExtractorServlet
+   	    </servlet-class>
+  	</servlet>
+  	<servlet-mapping>
+	    <servlet-name>ImageExtractorServlet</servlet-name>
+	    <url-pattern>/extract-image</url-pattern>
+  	</servlet-mapping>
+  	
+  	<!-- TaskCheckerServlet -->
+  	<servlet>
+    	<servlet-name>TaskCheckerServlet</servlet-name>
+    	<servlet-class>
+    	  fr.telecomParistech.servlet.TaskCheckerServlet
+   	    </servlet-class>
+  	</servlet>
+  	<servlet-mapping>
+	    <servlet-name>TaskCheckerServlet</servlet-name>
+	    <url-pattern>/check-task</url-pattern>
+  	</servlet-mapping>
+  	
   	<!-- ReadBlob Servlet -->
   	<servlet>
     	<servlet-name>ReadBlobServlet</servlet-name>

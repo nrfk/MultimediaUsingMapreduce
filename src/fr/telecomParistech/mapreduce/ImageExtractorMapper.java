@@ -1,5 +1,8 @@
 package fr.telecomParistech.mapreduce;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -96,7 +99,7 @@ public class ImageExtractorMapper extends Mapper<Entity, Integer, String>{
 		MP4Parser mp4Parser = new MP4Parser();
 		URL url = null;
 		byte[] segmentData = null;
-		
+
 		long startDownTime = System.nanoTime();
 		log.info("Mapper #" + id + " starts dowload segment data at: " + 
 				startDownTime + (" (ABSULUTE TIME)"));
@@ -158,13 +161,13 @@ public class ImageExtractorMapper extends Mapper<Entity, Integer, String>{
 		// Now pass it to H264 parser
 		H264Parser h264Parser = new H264Parser();
 		byte[] iFrame = null;
+		boolean isExceptionOccured = false;
 		try {
 			iFrame = h264Parser.parseH264Raw(h264Raw);
 		} catch (ArrayIndexOutOfBoundsException e) {
 			log.info("ArrayIndexOutOfBoundsException");
 			// If we have an exception, pass it as the result
-			getContext().emit((int) representationId, e.toString());
-			return;
+			isExceptionOccured = true;
 		}
 
 		// Save the image to file
@@ -174,8 +177,19 @@ public class ImageExtractorMapper extends Mapper<Entity, Integer, String>{
 			String imageFullPath = (String) value.getProperty("imageFullPath");
 			file = new AppEngineFile(imageFullPath);
 			boolean lock = true;
+
+			// If there're exceptions while parsing h264 raw data, display 
+			// an altenative image.
+			if (isExceptionOccured) {
+				File errorImageFile = new File("WEB-INF/error.png");
+				FileInputStream fis = new FileInputStream(errorImageFile);
+				iFrame = IOUtils.toByteArray(fis);
+			}
+			
 			writeChannel = fileService.openWriteChannel(file, lock);
 			writeChannel.write(ByteBuffer.wrap(iFrame, 0, iFrame.length));
+
+
 
 		} catch (Exception exception) {
 			log.severe("Error at GAE server: ");

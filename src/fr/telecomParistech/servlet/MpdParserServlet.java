@@ -277,7 +277,8 @@ public class MPDParserServlet extends HttpServlet {
 				timeUnit.convert(elapsedTime, TimeUnit.NANOSECONDS) + 
 				" ("+ timeUnit +")");
 		
-		String dispatchedLink = "/extract-image-processing.jsp";
+		
+		// Dispatcher request to another servlet
 		
 		// Save full path list and number of media segment for later use.
 		request.setAttribute("fullPathList", fullPathList);
@@ -289,10 +290,7 @@ public class MPDParserServlet extends HttpServlet {
 		// which is a unique time stamp to distinguish between these entities
 		request.setAttribute("sessionId", "" + startedTime ); // String form
 		
-		// Acknowledge as the sender of this request (to distinguish with 
-		// the retry request in extract-image-processing.jsp
-		request.setAttribute("sentByParser", true);
-		
+		String dispatchedLink = "/extract-image";
 		log.info("redirect to: " + dispatchedLink);
 		RequestDispatcher dispatcher = 
 				request.getRequestDispatcher(dispatchedLink);
