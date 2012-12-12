@@ -92,7 +92,7 @@
 	    <url-pattern>/mpd-parser-servlet</url-pattern>
   	</servlet-mapping>
   	
-  	<!-- MPDParserServlet -->
+  	<!-- ImageExtractorServlet -->
   	<servlet>
     	<servlet-name>ImageExtractorServlet</servlet-name>
     	<servlet-class>
@@ -101,7 +101,19 @@
   	</servlet>
   	<servlet-mapping>
 	    <servlet-name>ImageExtractorServlet</servlet-name>
-	    <url-pattern>/extract-image</url-pattern>
+	    <url-pattern>/image-extractor-servlet</url-pattern>
+  	</servlet-mapping>
+  	
+  	<!-- MPDModificatorServlet -->
+  	<servlet>
+    	<servlet-name>MPDModificatorServlet</servlet-name>
+    	<servlet-class>
+    	  fr.telecomParistech.servlet.MPDModificatorServlet
+   	    </servlet-class>
+  	</servlet>
+  	<servlet-mapping>
+	    <servlet-name>MPDModificatorServlet</servlet-name>
+	    <url-pattern>/mpd-modificator-servlet</url-pattern>
   	</servlet-mapping>
   	
   	<!-- TaskCheckerServlet -->

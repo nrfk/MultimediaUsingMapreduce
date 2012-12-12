@@ -37,6 +37,7 @@
 	<em > <%= label%> </em>
 	<form action="mpd-parser-servlet" method="post">
        <input type="text" name="<%= SENDER_URL %>" size="100">
+       <input name="processType" value="EXTRACT_IMAGE" type="hidden">
        <input type="submit" value="Submit">
    </form>
 	

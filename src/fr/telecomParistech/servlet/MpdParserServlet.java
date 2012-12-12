@@ -45,6 +45,11 @@ import fr.telecomParistech.parser.MP4Parser;
  *
  */
 public class MPDParserServlet extends HttpServlet {
+	private enum ProcessType {
+		MODIFY_MPD,
+		EXTRACT_IMAGE
+	}
+
 	private static final long serialVersionUID = 9114247753565601970L;
 	// Use FileService to work with file in GAE
 	private static final FileService fileService = 
@@ -63,7 +68,7 @@ public class MPDParserServlet extends HttpServlet {
 	// static initializer 
 	static {
 		log = Logger.getLogger(DashMpdParserServlet.class.getName());
-		
+
 		// First, set log level in order to display log info during this 
 		// static initializer. It's also the default log level
 		log.setLevel(Level.INFO);
@@ -99,7 +104,7 @@ public class MPDParserServlet extends HttpServlet {
 		String senderUrl = request.getParameter("senderUrl");
 		URL url = null;
 		MPD mpd = null;
-		
+
 		long startDownTime = System.nanoTime();
 		log.info("MPDParser starts dowload mpd file: "+ senderUrl +"at: " + 
 				startDownTime + (" (ABSULUTE TIME)"));
@@ -276,27 +281,44 @@ public class MPDParserServlet extends HttpServlet {
 		log.info("MPDParser done in: " + 
 				timeUnit.convert(elapsedTime, TimeUnit.NANOSECONDS) + 
 				" ("+ timeUnit +")");
-		
-		
+
+
 		// Dispatcher request to another servlet
-		
 		// Save full path list and number of media segment for later use.
 		request.setAttribute("fullPathList", fullPathList);
 		request.setAttribute("segmentCounter", segmentCounter);
-		
+
 		// The mapreduce function read entity as its input, and as we just want
 		// to read all entities in this session by mapper function, but not 
 		// entities used by previous mapper function, we create an session id
 		// which is a unique time stamp to distinguish between these entities
 		request.setAttribute("sessionId", "" + startedTime ); // String form
+
+		String processTypeStr = request.getParameter("processType");
+		ProcessType processType = ProcessType.valueOf(processTypeStr);
+		String dispatchedLink = null;
 		
-		String dispatchedLink = "/extract-image";
+		switch (processType) {
+		case EXTRACT_IMAGE:
+			dispatchedLink = "/image-extractor-servlet";
+			break;
+
+		case MODIFY_MPD:
+			dispatchedLink = "/mpd-modificator-servlet";
+			break;
+
+		default:
+			throw new UnsupportedOperationException(processType + 
+					" is unsupported by the underlying platform");
+		}
+
+		
 		log.info("redirect to: " + dispatchedLink);
 		RequestDispatcher dispatcher = 
 				request.getRequestDispatcher(dispatchedLink);
-		
+
 		dispatcher.forward(request, response);
-		
+
 	}
 
 }
