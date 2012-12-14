@@ -116,6 +116,18 @@
 	    <url-pattern>/mpd-modificator-servlet</url-pattern>
   	</servlet-mapping>
   	
+  	<!-- MPDModificatorMapredServlet -->
+  	<servlet>
+    	<servlet-name>MPDModificatorMapredServlet</servlet-name>
+    	<servlet-class>
+    	  fr.telecomParistech.servlet.MPDModificatorMapredServlet
+   	    </servlet-class>
+  	</servlet>
+  	<servlet-mapping>
+	    <servlet-name>MPDModificatorMapredServlet</servlet-name>
+	    <url-pattern>/mpd-modificator-mapreduce-servlet</url-pattern>
+  	</servlet-mapping>
+  	
   	<!-- TaskCheckerServlet -->
   	<servlet>
     	<servlet-name>TaskCheckerServlet</servlet-name>
@@ -128,16 +140,16 @@
 	    <url-pattern>/check-task</url-pattern>
   	</servlet-mapping>
   	
-  	<!-- ReadBlob Servlet -->
+  	<!-- BlobstoreReaderServlet -->
   	<servlet>
-    	<servlet-name>ReadBlobServlet</servlet-name>
+    	<servlet-name>BlobstoreReaderServlet</servlet-name>
     	<servlet-class>
-    	  fr.telecomParistech.servlet.ReadBlobServlet
+    	  fr.telecomParistech.servlet.BlobstoreReaderServlet
    	    </servlet-class>
   	</servlet>
   	<servlet-mapping>
-	    <servlet-name>ReadBlobServlet</servlet-name>
-	    <url-pattern>/read-blob-servlet</url-pattern>
+	    <servlet-name>BlobstoreReaderServlet</servlet-name>
+	    <url-pattern>/blobstore-reader-servlet</url-pattern>
   	</servlet-mapping>
   	
   	<!-- ****************** Transform Image ******************************** -->

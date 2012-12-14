@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -25,6 +26,7 @@ import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.files.AppEngineFile;
 import com.google.appengine.api.files.FileService;
 import com.google.appengine.api.files.FileServiceFactory;
+import com.google.appengine.api.files.FileWriteChannel;
 import com.google.appengine.tools.mapreduce.DatastoreMutationPool;
 
 import fr.telecomParistech.dash.mpd.AdaptationSet;
@@ -100,28 +102,23 @@ public class MPDParserServlet extends HttpServlet {
 	 * @param request request which contains mpd's raw data
 	 * @return a reference to MPD object
 	 */
-	private MPD createMpdFile(HttpServletRequest request) {
-		String senderUrl = request.getParameter("senderUrl");
-		URL url = null;
+	private MPD createMpdFile(URL mpdLocation) {
 		MPD mpd = null;
 
 		long startDownTime = System.nanoTime();
-		log.info("MPDParser starts dowload mpd file: "+ senderUrl +"at: " + 
-				startDownTime + (" (ABSULUTE TIME)"));
+		log.info("MPDParser creation started at: " + 
+				startDownTime + (" (ABSOLUTE TIME)"));
 		try {
-			url = new URL(senderUrl);
-			InputStream inputStream = url.openStream();
+			InputStream inputStream = mpdLocation.openStream();
 			mpd = MPDParser.parseMPD(inputStream);
-		} catch (MalformedURLException e) {
-			request.setAttribute("status", "malformedUrl");
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
 			long endDownTime = System.nanoTime();
-			log.info("MPDParser end dowload mpd file: "+ senderUrl +"at: "  + 
-					endDownTime + (" (ABSULUTE TIME)"));
+			log.info("MPDParser, mpd creation done at:  "  + 
+					endDownTime + (" (ABSOLUTE TIME)"));
 			long downTime = endDownTime - startDownTime;
-			log.info("MPDParser downloads file: "+ senderUrl +"in: "  + 
+			log.info("MPDParser, mpd creation time: "  + 
 					timeUnit.convert(downTime, TimeUnit.NANOSECONDS) + 
 					" ("+ timeUnit +")");
 		}
@@ -129,6 +126,29 @@ public class MPDParserServlet extends HttpServlet {
 		return mpd;
 	}
 
+	/**
+	 * Save MPD File to Blobstore for later use. 
+	 * @param mpdLocation location of mpd file
+	 * @return full path to the blobstore file containing this mpd file 
+	 * @throws IOException
+	 */
+	private String saveMpdFileToBlobstore(URL mpdLocation) throws IOException {
+		byte[] data = IOUtils.toByteArray(mpdLocation.openConnection());
+		
+		// Ok, now save to blob store
+		// Create Blob Store for each file
+		AppEngineFile file = 
+				fileService.createNewBlobFile("application/octet-stream");
+		// Create writer to write to it
+		boolean lock = true;
+		FileWriteChannel writeChannel = 
+				fileService.openWriteChannel(file, lock);
+		writeChannel.write(ByteBuffer.wrap(data));
+		writeChannel.closeFinally();
+
+		return file.getFullPath();
+	}
+	
 	/**
 	 * Get directory which contains mpd file from the fileUrl, for e.x, if
 	 * the fileUrl is http://link/to/file.txt, the return will be "to" folder
@@ -149,18 +169,24 @@ public class MPDParserServlet extends HttpServlet {
 		// in this season. It helps the mapper function to process only entities
 		// generated in this session but not previous ones.
 		long startedTime = System.nanoTime();
-		log.info("MPDParser started at " + startedTime + " (ABSULUTE TIME)");
+		log.info("MPDParser started at " + startedTime + " (ABSOLUTE TIME)");
 		int segmentCounter = 0;
 
 		// ----- Create MPD file ----------
-		MPD mpd = createMpdFile(request);
-		if (mpd == null) {
-			response.sendRedirect("/process-dash.jsp?status=" +
-					request.getAttribute("status"));
-			return;
-		}
-		log.finest(mpd.toString());
-
+		String senderUrl = request.getParameter("senderUrl");
+		URL url = new URL(senderUrl);
+		MPD mpd = createMpdFile(url);
+		
+		
+		
+		String processTypeStr = request.getParameter("processType");
+		ProcessType processType = ProcessType.valueOf(processTypeStr);
+		// Save MPD if required
+//		String mpdPath = null;
+//		if (processType == ProcessType.MODIFY_MPD) {
+//			mpdPath = saveMpdFileToBlobstore(url);
+//		}
+		
 		// ------- Ok, now parse it ------------
 		Entity entity = null;
 		List<Period> periods = mpd.getAllPeriod();
@@ -248,9 +274,13 @@ public class MPDParserServlet extends HttpServlet {
 								representationInfo);
 
 						String relativeLocation = mediaSegment.getMedia();
-						entity.setProperty("url", dirUrl + "/" +
-								relativeLocation);
+						entity.setProperty("host", dirUrl);
+						entity.setProperty("url", relativeLocation);
 
+						if (processType == ProcessType.MODIFY_MPD) {
+							entity.setProperty("mpdPath", senderUrl);
+						}
+						
 						// Create a new Blob File, as a place holder for storing
 						// image after.
 						AppEngineFile file = null;
@@ -275,7 +305,7 @@ public class MPDParserServlet extends HttpServlet {
 
 		// Log the execution time
 		long endTime = System.nanoTime();
-		log.info("MPDParser ended at " + endTime + " (ABSULUTE TIME)");
+		log.info("MPDParser ended at " + endTime + " (ABSOLUTE TIME)");
 		long elapsedTime = endTime - startedTime;
 		// Convert from nano second to mini second
 		log.info("MPDParser done in: " + 
@@ -294,8 +324,6 @@ public class MPDParserServlet extends HttpServlet {
 		// which is a unique time stamp to distinguish between these entities
 		request.setAttribute("sessionId", "" + startedTime ); // String form
 
-		String processTypeStr = request.getParameter("processType");
-		ProcessType processType = ProcessType.valueOf(processTypeStr);
 		String dispatchedLink = null;
 		
 		switch (processType) {
@@ -304,7 +332,9 @@ public class MPDParserServlet extends HttpServlet {
 			break;
 
 		case MODIFY_MPD:
-			dispatchedLink = "/mpd-modificator-servlet";
+			// ----- Save MPD file for later use ----------
+			saveMpdFileToBlobstore(url);
+			dispatchedLink = "/mpd-modificator-mapreduce-servlet";
 			break;
 
 		default:

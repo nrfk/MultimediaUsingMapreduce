@@ -2,7 +2,6 @@ package fr.telecomParistech.mapreduce;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -86,7 +85,7 @@ public class ImageExtractorMapper extends Mapper<Entity, Integer, String>{
 		int id = counter.incrementAndGet();
 		long startedTime = System.nanoTime();
 		log.info("Mapper #" + id + " started at " +
-				startedTime+ " (ABSULUTE TIME)");
+				startedTime+ " (ABSOLUTE TIME)");
 
 		// Get some information which we obtained from parsing mpd fife in 
 		// the previous step.
@@ -95,14 +94,18 @@ public class ImageExtractorMapper extends Mapper<Entity, Integer, String>{
 		String sps = (String) value.getProperty("sps");
 		// pps
 		String pps = (String) value.getProperty("pps");
-		String segmentUrl = (String) value.getProperty("url");
+		
+		// Segment url
+		String segmentUrl = (String) value.getProperty("host"); // Host
+		// and relative url
+		segmentUrl += "/" + (String) value.getProperty("url"); 
 		MP4Parser mp4Parser = new MP4Parser();
 		URL url = null;
 		byte[] segmentData = null;
 
 		long startDownTime = System.nanoTime();
 		log.info("Mapper #" + id + " starts dowload segment data at: " + 
-				startDownTime + (" (ABSULUTE TIME)"));
+				startDownTime + (" (ABSOLUTE TIME)"));
 		try {
 			url = new URL(segmentUrl);
 			segmentData = IOUtils.toByteArray(url.openStream());
@@ -116,7 +119,7 @@ public class ImageExtractorMapper extends Mapper<Entity, Integer, String>{
 		} finally {
 			long endDownTime = System.nanoTime();
 			log.info("Mapper #" + id + " finishes dowload segment data at: " + 
-					endDownTime + (" (ABSULUTE TIME)"));
+					endDownTime + (" (ABSOLUTE TIME)"));
 			long downTime = endDownTime - startDownTime;
 			log.info("Mapper #" + id + " downloading done in: " + 
 					timeUnit.convert(downTime, TimeUnit.NANOSECONDS) + 
@@ -148,7 +151,7 @@ public class ImageExtractorMapper extends Mapper<Entity, Integer, String>{
 			// Log the execution time
 			long endTime = System.nanoTime();
 			log.info("Mapper #" + id + " ended at " + 
-					endTime + " (ABSULUTE TIME)");
+					endTime + " (ABSOLUTE TIME)");
 			long elapsedTime = endTime - startedTime;
 
 			// Convert from nano second to mini second
@@ -217,7 +220,7 @@ public class ImageExtractorMapper extends Mapper<Entity, Integer, String>{
 
 		// Log the execution time
 		long endTime = System.nanoTime();
-		log.info("Mapper #" + id + " ended at " + endTime + " (ABSULUTE TIME)");
+		log.info("Mapper #" + id + " ended at " + endTime + " (ABSOLUTE TIME)");
 		long elapsedTime = endTime - startedTime;
 
 		log.info("Mapper #" + id + " done in: " + 

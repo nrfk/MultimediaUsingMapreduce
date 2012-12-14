@@ -121,7 +121,7 @@ h4.withperiod {
 		for (int j = 0; j < IMAGES_PER_ROW; j++) {
 			int index = i*IMAGES_PER_ROW + j;
 			if (nImages > 0) { // Placeholder
-				out.print("<td ><image height='" + IMAGES_HEIGHT + " ' width='"+IMAGES_WIDTH+"' src='/read-blob-servlet?blobPath=" + segmentPaths[index]  + "' alt='image loading...'></td>");
+				out.print("<td ><image height='" + IMAGES_HEIGHT + " ' width='"+IMAGES_WIDTH+"' src='/blobstore-reader-servlet?blobPath=" + segmentPaths[index]  + "' alt='image loading...'></td>");
 				nImages--;
 			} else { // Padding
 				out.print("<td height='" + IMAGES_HEIGHT + " ' width='"+IMAGES_WIDTH+"' > This is an align cell  </td>");

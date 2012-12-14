@@ -20,7 +20,8 @@ import com.google.appengine.tools.mapreduce.KeyValue;
 import com.google.appengine.tools.mapreduce.Mapper;
 
 /**
- * DashMapper is used to concatenate two segment
+ * DashMapper is used to concatenate init segment with media segment in order 
+ * to create a playable video file
  * @author xuan-hoa.nguyen@telecom-paristech.fr
  *
  */

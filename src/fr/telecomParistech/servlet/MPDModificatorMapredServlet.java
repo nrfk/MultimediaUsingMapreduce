@@ -24,18 +24,17 @@ import com.google.appengine.tools.mapreduce.outputs.InMemoryOutput;
 import com.google.appengine.tools.pipeline.PipelineService;
 import com.google.appengine.tools.pipeline.PipelineServiceFactory;
 
-import fr.telecomParistech.mapreduce.ImageExtractorMapper;
-import fr.telecomParistech.mapreduce.ImageExtractorReducer;
+import fr.telecomParistech.mapreduce.MpdModificatorMapper;
+import fr.telecomParistech.mapreduce.MpdModificatorReducer;
 
 /**
- * This Servlet receives parsed information from MPDParserServlet and then, it 
- *  tries to extract image in each media segment (whose url retrieved from 
- *  parsing process) 
+ * This Servlet receives parsed information from MPDParserServlet and then, 
+ * it uploads all media segments found in mpd file to Google App Engine. 
  * @author xuan-hoa.nguyen@telecom-paristech.fr
  *
  */
-public class ImageExtractorServlet extends HttpServlet {
-	private static final long serialVersionUID = -6201164928303453173L;
+public class MPDModificatorMapredServlet extends HttpServlet {
+	private static final long serialVersionUID = 5231579844503475829L;
 	private static final boolean USE_BACKENDS = false;
 	private static final String SESSION_ID = "sessionId";
 
@@ -74,7 +73,7 @@ public class ImageExtractorServlet extends HttpServlet {
 			}
 		}
 	}
-
+	
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
@@ -96,21 +95,24 @@ public class ImageExtractorServlet extends HttpServlet {
 				mapreduceConfig.getInt("mapreduce.reduce-task", 1);
 
 		MapReduceSpecification<
-		Entity, 
-		Integer, 
-		String, 
-		KeyValue<Integer,String>, 
-		List<List<KeyValue<Integer,String>>>> mrSpec = 
-		MapReduceSpecification.of(
-				"Image Extractor", new DatastoreInput(
-						"MediaSegmentInfo" + sessionId,
-						mapShardCount),
-						new ImageExtractorMapper(), Marshallers
-						.getIntegerMarshaller(), Marshallers
-						.getStringMarshaller(),
-						new ImageExtractorReducer(),
-						new InMemoryOutput<KeyValue<Integer,String>>(reduceShardCount));
-
+						Entity, 
+						String, 
+						KeyValue<String, String>, 
+						String, 
+						List<List<String>>> mrSpec = 
+			MapReduceSpecification.of(
+							"Image Extractor", 
+							new DatastoreInput(
+									"MediaSegmentInfo" + sessionId,
+									mapShardCount),
+							new MpdModificatorMapper(), 
+							Marshallers.getStringMarshaller(), 
+							Marshallers.getKeyValueMarshaller(
+									Marshallers.getStringMarshaller(), 
+									Marshallers.getStringMarshaller()),
+							new MpdModificatorReducer(),
+							new InMemoryOutput<String>(reduceShardCount));
+		
 		MapReduceSettings settings = new MapReduceSettings()
 		.setWorkerQueueName("mapreduce-workers")
 		.setControllerQueueName("default");
@@ -122,43 +124,16 @@ public class ImageExtractorServlet extends HttpServlet {
 		String pipelineId = service.startNewPipeline(
 				new MapReduceJob<
 				Entity, 
-				Integer, 
 				String, 
-				KeyValue<Integer,String>, 
-				List<List<KeyValue<Integer,String>>>>(),
+				KeyValue<String,String>, 
+				String, 
+				List<List<String>>>(),
 				mrSpec, settings);
-
-		String redirectLink = "/image-extractor-result.jsp?";
-
-		StringBuilder strBuilder = new StringBuilder();
-		//The parser always sends us List<String> contains list of segment
-		// So we can safety supress this casting warning
-		@SuppressWarnings("unchecked")
-		List<String> fullPathList = 
-		(List<String>)req.getAttribute("fullPathList");
-		strBuilder.append("fullPathList=");
-		for (String fullPath : fullPathList) {
-			strBuilder.append(fullPath + " ");
-		}
-		strBuilder.append("&segmentCounter=");
-		int segmentCounter = (Integer) req.getAttribute("segmentCounter");
-		strBuilder.append(segmentCounter);
-
-		strBuilder.append("&pipelineId=" + pipelineId);
-
-		redirectLink += strBuilder.toString();
-		log.info(redirectLink);
+		
+		String redirectLink = "/mpd-modificator-result.jsp?pipelineId=" + pipelineId;
 		resp.sendRedirect(redirectLink);
 	}
 }
-
-
-
-
-
-
-
-
 
 
 

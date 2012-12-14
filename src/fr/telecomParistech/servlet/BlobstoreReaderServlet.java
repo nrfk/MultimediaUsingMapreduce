@@ -14,7 +14,7 @@ import com.google.appengine.api.files.AppEngineFile;
 import com.google.appengine.api.files.FileServiceFactory;
 import com.google.appengine.api.files.FileService;
 
-public class ReadBlobServlet extends HttpServlet {
+public class BlobstoreReaderServlet extends HttpServlet {
 	private static final long serialVersionUID = -7957261535977201176L;
 
 	@Override

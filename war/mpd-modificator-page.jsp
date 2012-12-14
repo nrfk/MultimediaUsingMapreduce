@@ -35,7 +35,7 @@
 <BODY>
 	<H2>Process Dash</H2>
 	<em > <%= label%> </em>
-	<form action="mpd-parser-servlet" method="post">
+	<form action="mpd-modificator-servlet" method="post">
        <input type="text" name="<%= SENDER_URL %>" size="100">
        <input name="processType" value="MODIFY_MPD" type="hidden">
        <input type="submit" value="Submit">

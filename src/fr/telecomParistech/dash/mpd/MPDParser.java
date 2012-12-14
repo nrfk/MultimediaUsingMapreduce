@@ -1,10 +1,10 @@
 package fr.telecomParistech.dash.mpd;
 
-import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -21,7 +21,7 @@ import org.w3c.dom.NodeList;
  *
  */
 public class MPDParser {
-	private static final Logger LOGGER = 
+	private static final Logger log = 
 			Logger.getLogger(MPDParser.class.getName());
 	
 	/**
@@ -38,7 +38,7 @@ public class MPDParser {
 			doc.getDocumentElement().normalize();
 			return doc;
 		} catch (Exception e) {
-			LOGGER.severe("Cannot create document");
+			log.severe("Cannot create document");
 			e.printStackTrace();
 			System.err.println("Cannot create document");
 			System.exit(1);
@@ -63,7 +63,7 @@ public class MPDParser {
 			doc.getDocumentElement().normalize();
 			return doc;
 		} catch (Exception e) {
-			LOGGER.severe("Cannot create document");
+			log.severe("Cannot create document");
 			e.printStackTrace();
 			System.err.println("Cannot create document");
 			System.exit(1);
@@ -82,7 +82,7 @@ public class MPDParser {
 			Element eMpd = doc.getDocumentElement();
 			// Get list of Period
 			NodeList nlPeriod = doc.getElementsByTagName("Period");
-			LOGGER.info("---------@ Period tag -----------");
+			log.info("---------@ Period tag -----------");
 			
 			// Pre-init variable for later use
 			InitSegment initSegment = null;
@@ -102,7 +102,7 @@ public class MPDParser {
 				NodeList nlAdaptationSet = 
 						ePeriod.getElementsByTagName("AdaptationSet");
 				
-				LOGGER.info("---------@ AdaptationSet tag-----------");
+				log.info("---------@ AdaptationSet tag-----------");
 				
 				// For each AdaptationSet.
 				for (int j = 0; j < nlAdaptationSet.getLength(); j++) {
@@ -112,7 +112,7 @@ public class MPDParser {
 					// Get List of Representation
 					NodeList nlRepresentation = eAdaptationSet
 							.getElementsByTagName("Representation");
-					LOGGER.info("---------Representation List-----------");
+					log.info("---------Representation List-----------");
 					
 					// For each Representation
 					for (int k = 0; k < nlRepresentation.getLength(); k++) {
@@ -224,6 +224,30 @@ public class MPDParser {
 		Document doc = createDocument(fromInputStream);
 		MPD mpdFile = parseMPD(doc);
 		return mpdFile;
+	}
+	
+	/**
+	 * Create mpdFile from its URL
+	 * @param mpdLocation request which contains mpd's raw data
+	 * @return a reference to MPD object
+	 * @throws IOException if stream indicated by the URL cannot be openned
+	 */
+	public static MPD parseMPD(URL mpdLocation) throws IOException {
+		MPD mpd = null;
+
+		long startDownTime = System.nanoTime();
+		log.info("MPDParser creation started at: " + 
+				startDownTime + (" (ABSOLUTE TIME)"));
+		try {
+			InputStream inputStream = mpdLocation.openStream();
+			mpd = MPDParser.parseMPD(inputStream);
+		} finally {
+			long endDownTime = System.nanoTime();
+			log.info("MPDParser, mpd creation done at:  "  + 
+					endDownTime + (" (ABSOLUTE TIME)"));
+		}
+		log.info("mpd file created...");
+		return mpd;
 	}
 
 	private static String getEnclosingDirectoryOf(String filePath) {

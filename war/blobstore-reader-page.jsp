@@ -22,7 +22,7 @@
 <BODY>
 	<H2>Process Dash</H2>
 	Please enter a blob url: 
-	<form action="read-blob-servlet" method="post" >
+	<form action="/blobstore-reader-servlet" method="post" >
        <textarea name="blobPath" cols=40 rows=6></textarea>
        <input type="submit" value="Submit">
     </form>
