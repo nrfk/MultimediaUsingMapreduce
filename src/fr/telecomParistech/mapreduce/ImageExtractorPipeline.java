@@ -2,8 +2,6 @@ package fr.telecomParistech.mapreduce;
 
 import java.util.List;
 
-import javax.persistence.criteria.CriteriaBuilder.In;
-
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.tools.mapreduce.KeyValue;
 import com.google.appengine.tools.mapreduce.MapReduceJob;

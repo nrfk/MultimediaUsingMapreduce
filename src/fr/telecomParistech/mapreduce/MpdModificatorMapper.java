@@ -17,8 +17,6 @@ import com.google.appengine.api.files.AppEngineFile;
 import com.google.appengine.api.files.FileService;
 import com.google.appengine.api.files.FileServiceFactory;
 import com.google.appengine.api.files.FileWriteChannel;
-import com.google.appengine.api.images.ImagesService;
-import com.google.appengine.api.images.ImagesServiceFactory;
 import com.google.appengine.tools.mapreduce.KeyValue;
 import com.google.appengine.tools.mapreduce.Mapper;
 
@@ -34,8 +32,6 @@ extends Mapper<Entity, String, KeyValue<String, String>> {
 	// GEA services
 	private static final FileService fileService = 
 			FileServiceFactory.getFileService(); 
-	private static final ImagesService imagesService = 
-			ImagesServiceFactory.getImagesService();
 
 	// Counter, help us to keep track of each map task.
 	private static AtomicInteger counter = new AtomicInteger(0);

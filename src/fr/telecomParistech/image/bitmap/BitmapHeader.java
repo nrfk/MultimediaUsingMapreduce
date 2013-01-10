@@ -131,16 +131,6 @@ public class BitmapHeader {
 		
 		attributes.put(a.getOffset(), value);
 		
-//		String strValue = "";
-//		for (byte b : value) {
-//			String hex = Integer.toHexString(b & 0xFF);
-//			if (hex.length() == 1) {
-//				hex = "0" + hex;
-//			}
-//			strValue += hex + " ";
-//		}
-//		LOGGER.finest(Integer.toHexString(headerLength) 
-//				+ ": " + a + " 		:" + strValue);
 		
 	}
 

@@ -153,6 +153,14 @@ import fr.telecomParistech.parser.MP4Parser;
 		return dirUrl;
 	}
 	
+	/**
+	 * Create MPD file from a String
+	 * @param mdpUrl string pointing to mpd file
+	 * @return the equivalent content of mpd type.
+	 */
+	
+	// We use it internally for debug. So we can safety add @SuppressWarnings("unused");
+	@SuppressWarnings("unused")
 	private MPD createMpdFile(String mdpUrl) {
 		URL url = null;
 		MPD mpd = null;

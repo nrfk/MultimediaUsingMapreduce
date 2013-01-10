@@ -2,7 +2,6 @@ package fr.telecomParistech.servlet;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -30,7 +29,7 @@ import fr.telecomParistech.mapreduce.ImageExtractorReducer;
 /**
  * This Servlet receives parsed information from MPDParserServlet and then, it 
  *  tries to extract image in each media segment (whose url retrieved from 
- *  parsing process) 
+ *  parsing process). 
  * @author xuan-hoa.nguyen@telecom-paristech.fr
  *
  */
@@ -42,11 +41,11 @@ public class ImageExtractorServlet extends HttpServlet {
 	private static final PipelineService service = 
 			PipelineServiceFactory.newPipelineService();
 
+
 	// Configuration-related properties
 	private static final Logger log;
 	private static final String CONFIG_FILE="WEB-INF/mapreduce-config.xml";
 	private static final XMLConfiguration mapreduceConfig;
-	private static final TimeUnit timeUnit;
 
 	// static initializer 
 	static {
@@ -62,15 +61,9 @@ public class ImageExtractorServlet extends HttpServlet {
 			mapreduceConfig = tmp;
 			if (mapreduceConfig != null) {
 
-				String timeUnitStr = mapreduceConfig
-						.getString("mapreduce.time-unit","SECONDS");
-				timeUnit = TimeUnit.valueOf(timeUnitStr);
-
 				String logLevel = 
 						mapreduceConfig.getString("log.level-display", "INFO");
 				log.setLevel(Level.parse(logLevel));
-			} else {
-				timeUnit = TimeUnit.SECONDS;
 			}
 		}
 	}
@@ -84,6 +77,11 @@ public class ImageExtractorServlet extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
+		// Log the start time
+		long startedTime = System.nanoTime();
+		log.info("ImageExtractorServlet started at " + 
+				startedTime + " (ABSOLUTE TIME)");
+		
 		// The mapreduce function read entity as its input, and as we just want
 		// to read all entities in this session by mapper function, but not 
 		// entities used by previous mapper function, we create an session id
@@ -96,11 +94,11 @@ public class ImageExtractorServlet extends HttpServlet {
 				mapreduceConfig.getInt("mapreduce.reduce-task", 1);
 
 		MapReduceSpecification<
-		Entity, 
-		Integer, 
-		String, 
-		KeyValue<Integer,String>, 
-		List<List<KeyValue<Integer,String>>>> mrSpec = 
+				Entity, 
+				Integer, 
+				String, 
+				KeyValue<Integer,String>, 
+				List<List<KeyValue<Integer,String>>>> mrSpec = 
 		MapReduceSpecification.of(
 				"Image Extractor", new DatastoreInput(
 						"MediaSegmentInfo" + sessionId,
@@ -131,23 +129,25 @@ public class ImageExtractorServlet extends HttpServlet {
 		String redirectLink = "/image-extractor-result.jsp?";
 
 		StringBuilder strBuilder = new StringBuilder();
-		//The parser always sends us List<String> contains list of segment
-		// So we can safety supress this casting warning
-		@SuppressWarnings("unchecked")
-		List<String> fullPathList = 
-		(List<String>)req.getAttribute("fullPathList");
-		strBuilder.append("fullPathList=");
-		for (String fullPath : fullPathList) {
-			strBuilder.append(fullPath + " ");
-		}
+		
+		// Segment counter, with it, we can know how many images will be
+		// included in the response
 		strBuilder.append("&segmentCounter=");
 		int segmentCounter = (Integer) req.getAttribute("segmentCounter");
 		strBuilder.append(segmentCounter);
 
+		// PipelineId, to get the current state of mapreduce job
 		strBuilder.append("&pipelineId=" + pipelineId);
 
+		// ImageInfoKey, to get location of all image
+		String imageInfoKey = (String) req.getAttribute("imageInfoKey");
+		strBuilder.append("&imageInfoKey=" + imageInfoKey);
+		
 		redirectLink += strBuilder.toString();
 		log.info(redirectLink);
+		long endTime = System.nanoTime();
+		log.info("ImageExtractorServlet end at:  "  + 
+				endTime + (" (ABSOLUTE TIME)"));
 		resp.sendRedirect(redirectLink);
 	}
 }

@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -45,7 +44,6 @@ public class MPDParser {
 			
 		}
 		return null;
-		
 	}
 	
 	/**
@@ -67,7 +65,6 @@ public class MPDParser {
 			e.printStackTrace();
 			System.err.println("Cannot create document");
 			System.exit(1);
-			
 		}
 		return null;
 	}
@@ -250,6 +247,8 @@ public class MPDParser {
 		return mpd;
 	}
 
+	// This method is used for test. So we can suppress warning 
+	@SuppressWarnings("unused")
 	private static String getEnclosingDirectoryOf(String filePath) {
 		int delimIndex = filePath.lastIndexOf('/');
 		String dirUrl = filePath.substring(0, delimIndex);

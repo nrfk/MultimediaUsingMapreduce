@@ -2,6 +2,7 @@ package fr.telecomParistech.image.bitmap;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 
 /**
  * ConvertUtility, used to convert between differents number representation

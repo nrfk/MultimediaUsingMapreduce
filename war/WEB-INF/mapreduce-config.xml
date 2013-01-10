@@ -22,6 +22,8 @@
         allow it the the size is least than image's size,  -->
         <image-width> 300 </image-width>
         <image-height> 300 </image-height>
+        <!-- Refresh time (in miliseconds) -->
+        <refresh-time> 3000 </refresh-time>
     </result>
     
     <!--

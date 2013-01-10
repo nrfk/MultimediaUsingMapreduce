@@ -1,11 +1,9 @@
 package fr.telecomParistech.parser;
 
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -17,7 +15,6 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 
 import com.coremedia.iso.IsoFile;
@@ -60,7 +57,7 @@ public class MP4Parser {
 			int nalLengthSize, int videoTrackId) {
 		// We just want to get the first image. This function is dedicated to 
 		// the image extractor mapreduce
-		boolean justFirstImage = true;
+		boolean firstImage = true;
 		return createH264rawDataFromDashSegment(
 				nalHeader, 
 				sps, 
@@ -68,7 +65,7 @@ public class MP4Parser {
 				segmentData, 
 				nalLengthSize, 
 				videoTrackId, 
-				justFirstImage);
+				firstImage);
 	}
 	
 	public byte[] createH264rawDataFromDashSegment(
@@ -79,7 +76,7 @@ public class MP4Parser {
 			int nalLengthSize, int videoTrackId) {
 		
 		// We won't to get just the first image, so we get all
-		boolean justFirstImage = false;
+		boolean firstImage = false;
 		return createH264rawDataFromDashSegment(
 				nalHeader, 
 				sps, 
@@ -87,7 +84,7 @@ public class MP4Parser {
 				segmentData, 
 				nalLengthSize, 
 				videoTrackId, 
-				justFirstImage);
+				firstImage);
 	}
 	
 	/**
@@ -105,7 +102,7 @@ public class MP4Parser {
 			byte[] sps, 
 			byte[] pps, 
 			byte[] segmentData, 
-			int nalLengthSize, int videoTrackId, boolean justFirstImage) {
+			int nalLengthSize, int videoTrackId, boolean firstImage) {
 		
 		// Current offset to the beginning of file
 		int offset = 0;
@@ -209,7 +206,7 @@ public class MP4Parser {
 					// Just want the first sample (which is a I-sample)
 					// return early if we just want to get the first image. Dont
 					// need to process the rest
-					if (justFirstImage) {
+					if (firstImage) {
 						sampleData = byteArrayOutputStream.toByteArray();
 						byteArrayOutputStream.close();
 						return sampleData;
@@ -334,6 +331,8 @@ public class MP4Parser {
 	 * @param input string to format
 	 * @return
 	 */
+	// This method is used for debug. So we can supress the warning
+	@SuppressWarnings("unused")
 	private String format(String input) {
 		if ("" == input || null == input) 
 			return "";
@@ -681,6 +680,11 @@ public class MP4Parser {
 		return (avcConfigurationBox.getLengthSizeMinusOne() + 1);
 	}
 
+	/**
+	 * Get NAL Length size of file located at {@code fileURL}
+	 * @param fileUrl NAL Length size
+	 * @return
+	 */
 	public int getNalLengthSize(URL fileUrl) {
 		AvcConfigurationBox avcConfigurationBox = 
 				getAvcConfigurationBox(fileUrl);
@@ -1069,18 +1073,18 @@ public class MP4Parser {
 		int videoTrackId = mp4Parser.getVideoTrackBoxId(header);
 		System.out.println("videoTrackId: " + videoTrackId); 
 		
-		URL segmentUrl = new URL("https://dl.dropbox.com/u/27889409/muma/sample-dash/sample-dash3/sample_iPod_out6.m4s");
-		byte[] segmentData = IOUtils.toByteArray(segmentUrl.openStream());
+//		URL segmentUrl = new URL("https://dl.dropbox.com/u/27889409/muma/sample-dash/sample-dash3/sample_iPod_out6.m4s");
+//		byte[] segmentData = IOUtils.toByteArray(segmentUrl.openStream());
 		
 		
 		
-		byte[] result = mp4Parser.createH264rawDataFromDashSegment(
-				nalHeader, 
-				spsData, 
-				ppsData, 
-				segmentData, 
-				nalLengthSize, 
-				videoTrackId);
+//		byte[] result = mp4Parser.createH264rawDataFromDashSegment(
+//				nalHeader, 
+//				spsData, 
+//				ppsData, 
+//				segmentData, 
+//				nalLengthSize, 
+//				videoTrackId);
 
 		//
 		//		byte[] result = 

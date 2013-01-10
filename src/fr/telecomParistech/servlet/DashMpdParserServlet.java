@@ -153,6 +153,7 @@ public class DashMpdParserServlet extends HttpServlet {
 					}
 					
 					buffer = byteArrayOut.toByteArray();
+					byteArrayOut.close();
 					writeChannel.write(ByteBuffer.
 							wrap(buffer, 0, buffer.length));
 					writeChannel.closeFinally();

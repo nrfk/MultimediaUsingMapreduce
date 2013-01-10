@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -43,8 +44,6 @@ public class ImageExtractorMapper extends Mapper<Entity, Integer, String>{
 	private static final XMLConfiguration mapreduceConfig;
 	private static final TimeUnit timeUnit;
 	// GEA services
-	private static final FileService fileService = 
-			FileServiceFactory.getFileService(); 
 	private static final ImagesService imagesService = 
 			ImagesServiceFactory.getImagesService();
 
@@ -108,7 +107,10 @@ public class ImageExtractorMapper extends Mapper<Entity, Integer, String>{
 				startDownTime + (" (ABSOLUTE TIME)"));
 		try {
 			url = new URL(segmentUrl);
-			segmentData = IOUtils.toByteArray(url.openStream());
+			URLConnection conn = url.openConnection();
+			conn.setConnectTimeout(60*60*24*1000);
+			conn.setReadTimeout(60*60*24*1000);
+			segmentData = IOUtils.toByteArray(conn.getInputStream());
 
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
@@ -138,7 +140,7 @@ public class ImageExtractorMapper extends Mapper<Entity, Integer, String>{
 		long videoTrackId = (Long) value.getProperty("videoTrackId");
 
 		// Get the h264 raw data
-		byte[] h264Raw = mp4Parser.createFirstImageFromDashSegment(
+		byte[] h264Raw = mp4Parser.createH264rawDataFromDashSegment (
 				nalHeader, 
 				spsData, 
 				ppsData, 
@@ -146,6 +148,7 @@ public class ImageExtractorMapper extends Mapper<Entity, Integer, String>{
 				(int) nalLengthSize, 
 				(int) videoTrackId);
 
+		
 		// cannot get h264 data, return.
 		if (h264Raw == null) {
 			// Log the execution time
@@ -167,8 +170,8 @@ public class ImageExtractorMapper extends Mapper<Entity, Integer, String>{
 		boolean isExceptionOccured = false;
 		try {
 			iFrame = h264Parser.parseH264Raw(h264Raw);
-		} catch (ArrayIndexOutOfBoundsException e) {
-			log.info("ArrayIndexOutOfBoundsException");
+		} catch (Exception e) {
+			log.info("Exception while parsing h264 raw file");
 			// If we have an exception, pass it as the result
 			isExceptionOccured = true;
 		}
@@ -188,15 +191,20 @@ public class ImageExtractorMapper extends Mapper<Entity, Integer, String>{
 				FileInputStream fis = new FileInputStream(errorImageFile);
 				iFrame = IOUtils.toByteArray(fis);
 			}
-			
-			writeChannel = fileService.openWriteChannel(file, lock);
+			FileService fileService = FileServiceFactory.getFileService();
+			while (writeChannel == null) {
+				try {
+					writeChannel = fileService.openWriteChannel(file, lock);
+				} catch (Exception ignored) {}
+			}
 			writeChannel.write(ByteBuffer.wrap(iFrame, 0, iFrame.length));
 
 
 
-		} catch (Exception exception) {
-			log.severe("Error at GAE server: ");
-			exception.printStackTrace();
+		} catch (IOException ioe) {
+			log.severe("Exception occurs at GAE server: ");
+			
+			ioe.printStackTrace();
 			System.exit(1);
 		} finally {
 			if (writeChannel != null) {
@@ -211,10 +219,12 @@ public class ImageExtractorMapper extends Mapper<Entity, Integer, String>{
 		}
 
 		// Ok, get its url in order to return to the client later.
+		FileService fileService = FileServiceFactory.getFileService();
 		BlobKey blobKey = fileService.getBlobKey(file);
 		ServingUrlOptions servingUrlOptions =
 				ServingUrlOptions.Builder.withBlobKey(blobKey);
 		String iFrameUrl = imagesService.getServingUrl(servingUrlOptions);
+		System.out.println("***************** url: " + iFrameUrl);
 		log.info("Emit: " + value.getKey().toString());
 		getContext().emit((int) representationId, iFrameUrl);
 

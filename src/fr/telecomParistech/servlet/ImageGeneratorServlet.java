@@ -1,6 +1,5 @@
 package fr.telecomParistech.servlet;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -11,8 +10,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.configuration.XMLConfiguration;
 
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreService;
@@ -40,20 +37,9 @@ public class ImageGeneratorServlet extends HttpServlet{
 			BlobstoreServiceFactory.getBlobstoreService();
 	
 	private static final Logger log;
-	private static final String CONFIG_FILE="WEB-INF/mapreduce-config.xml";
-	private static final XMLConfiguration config;
 	static {
 		log = Logger.getLogger(ImageGeneratorServlet.class.getName());
 		log.setLevel(Level.INFO);
-		XMLConfiguration tmp = null; 
-		try {
-			tmp = new XMLConfiguration(CONFIG_FILE);
-		} catch (Exception e) {
-			log.severe("Couldn't read config file: " + CONFIG_FILE);
-			System.exit(1);
-		} finally {
-			config = tmp;
-		}
 	}
 	
 	@Override

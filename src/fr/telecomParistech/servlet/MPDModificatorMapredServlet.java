@@ -2,7 +2,6 @@ package fr.telecomParistech.servlet;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -45,7 +44,6 @@ public class MPDModificatorMapredServlet extends HttpServlet {
 	private static final Logger log;
 	private static final String CONFIG_FILE="WEB-INF/mapreduce-config.xml";
 	private static final XMLConfiguration mapreduceConfig;
-	private static final TimeUnit timeUnit;
 
 	// static initializer 
 	static {
@@ -60,17 +58,10 @@ public class MPDModificatorMapredServlet extends HttpServlet {
 		} finally {
 			mapreduceConfig = tmp;
 			if (mapreduceConfig != null) {
-
-				String timeUnitStr = mapreduceConfig
-						.getString("mapreduce.time-unit","SECONDS");
-				timeUnit = TimeUnit.valueOf(timeUnitStr);
-
 				String logLevel = 
 						mapreduceConfig.getString("log.level-display", "INFO");
 				log.setLevel(Level.parse(logLevel));
-			} else {
-				timeUnit = TimeUnit.SECONDS;
-			}
+			} 
 		}
 	}
 	

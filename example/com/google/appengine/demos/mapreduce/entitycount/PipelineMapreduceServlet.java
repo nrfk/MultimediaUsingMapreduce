@@ -1,14 +1,9 @@
 package com.google.appengine.demos.mapreduce.entitycount;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.List;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.tools.mapreduce.KeyValue;
@@ -16,16 +11,12 @@ import com.google.appengine.tools.mapreduce.MapReduceJob;
 import com.google.appengine.tools.mapreduce.MapReduceSettings;
 import com.google.appengine.tools.mapreduce.MapReduceSpecification;
 import com.google.appengine.tools.mapreduce.Marshallers;
-import com.google.appengine.tools.mapreduce.impl.Util;
 import com.google.appengine.tools.mapreduce.inputs.DatastoreInput;
 import com.google.appengine.tools.mapreduce.outputs.InMemoryOutput;
 import com.google.appengine.tools.pipeline.Job0;
 import com.google.appengine.tools.pipeline.PipelineService;
 import com.google.appengine.tools.pipeline.PipelineServiceFactory;
 import com.google.appengine.tools.pipeline.Value;
-
-import fr.telecomParistech.mapreduce.ImageExtractorMapper;
-import fr.telecomParistech.mapreduce.ImageExtractorReducer;
 
 
 public class PipelineMapreduceServlet extends HttpServlet {

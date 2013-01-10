@@ -42,7 +42,7 @@ import fr.telecomParistech.parser.MP4Parser;
 /**
  * This class receives requests which contain mpd file. It then parse the file 
  * and forward parsed data to another servlet in order to do some post
- * processing
+ * processing.
  * @author xuan-hoa.nguyen@telecom-paristech.fr
  *
  */
@@ -103,6 +103,9 @@ public class MPDParserServlet extends HttpServlet {
 	 * @return a reference to MPD object
 	 */
 	private MPD createMpdFile(URL mpdLocation) {
+		if (mpdLocation == null) {
+			throw new NullPointerException("mpdLocation is null");
+		}
 		MPD mpd = null;
 
 		long startDownTime = System.nanoTime();
@@ -176,8 +179,9 @@ public class MPDParserServlet extends HttpServlet {
 		String senderUrl = request.getParameter("senderUrl");
 		URL url = new URL(senderUrl);
 		MPD mpd = createMpdFile(url);
-		
-		
+		if (mpd == null) {
+			throw new NullPointerException("Cannot create Mpd file.");
+		}
 		
 		String processTypeStr = request.getParameter("processType");
 		ProcessType processType = ProcessType.valueOf(processTypeStr);
@@ -189,6 +193,9 @@ public class MPDParserServlet extends HttpServlet {
 		
 		// ------- Ok, now parse it ------------
 		Entity entity = null;
+
+		// Store a list of image's url
+		List<String> imageList = new ArrayList<String>();
 		List<Period> periods = mpd.getAllPeriod();
 
 		// Get file and dirUrl
@@ -276,7 +283,6 @@ public class MPDParserServlet extends HttpServlet {
 						String relativeLocation = mediaSegment.getMedia();
 						entity.setProperty("host", dirUrl);
 						entity.setProperty("url", relativeLocation);
-
 						if (processType == ProcessType.MODIFY_MPD) {
 							entity.setProperty("mpdPath", senderUrl);
 						}
@@ -290,6 +296,7 @@ public class MPDParserServlet extends HttpServlet {
 										.createNewBlobFile("image/bmp");
 								// Add this path to segmentFullPaths
 								fullPathList.add(file.getFullPath());
+								imageList.add(file.getFullPath());
 							} catch (IOException ignored) {
 								// Exception will be ignored
 							}
@@ -301,8 +308,19 @@ public class MPDParserServlet extends HttpServlet {
 				}
 			}
 		}
+		
+		// Save all image info into an entity for later use
+		Key imageInfoKey = KeyFactory.createKey(
+				// use startTime as an id for this session
+				"ImageInfo" + startedTime, 
+				senderUrl);
+		Entity imageInfoEntity = new Entity(imageInfoKey);
+		imageInfoEntity.setProperty("imageList", imageList);
+		pool.put(imageInfoEntity);
+		
 		pool.flush();
-
+		
+		
 		// Log the execution time
 		long endTime = System.nanoTime();
 		log.info("MPDParser ended at " + endTime + " (ABSOLUTE TIME)");
@@ -317,10 +335,13 @@ public class MPDParserServlet extends HttpServlet {
 		// Save full path list and number of media segment for later use.
 		request.setAttribute("fullPathList", fullPathList);
 		request.setAttribute("segmentCounter", segmentCounter);
-
+		request.setAttribute("imageInfoKey", 
+				KeyFactory.keyToString(imageInfoKey));
+		
+		
 		// The mapreduce function read entity as its input, and as we just want
 		// to read all entities in this session by mapper function, but not 
-		// entities used by previous mapper function, we create an session id
+		// entities used in previous sessions, we create an session id
 		// which is a unique time stamp to distinguish between these entities
 		request.setAttribute("sessionId", "" + startedTime ); // String form
 

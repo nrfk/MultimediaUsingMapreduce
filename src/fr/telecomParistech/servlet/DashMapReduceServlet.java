@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -15,7 +14,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.configuration.XMLConfiguration;
 
 import com.google.appengine.demos.mapreduce.entitycount.EntityCounterServlet;
-import com.google.appengine.tools.mapreduce.KeyValue;
 import com.google.appengine.tools.mapreduce.MapReduceJob;
 import com.google.appengine.tools.mapreduce.MapReduceResult;
 import com.google.appengine.tools.mapreduce.MapReduceSettings;
@@ -82,6 +80,8 @@ public class DashMapReduceServlet extends HttpServlet {
 	 * @param pipelineId pipelineId to redirect to
 	 * @throws IOException
 	 */
+	// We use this method for local test. So we add @SuppressWarnings("unused") 
+	@SuppressWarnings("unused")
 	private void redirectToPipelineStatus(HttpServletRequest req, 
 			HttpServletResponse resp,
 			String pipelineId) throws IOException {
@@ -165,7 +165,6 @@ public class DashMapReduceServlet extends HttpServlet {
 			
 			PrintWriter pw = resp.getWriter();
 			pw.write(xml);
-			pw.write("************************");
 			pw.close();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

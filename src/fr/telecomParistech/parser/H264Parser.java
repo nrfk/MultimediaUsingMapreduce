@@ -32,7 +32,7 @@ public class H264Parser {
 	private static final Logger LOGGER = 
 			Logger.getLogger(H264Parser.class.getName());
 	
-
+	
 	private int[] buffer = null;
 	
 
@@ -179,7 +179,6 @@ public class H264Parser {
 					} // if
 
 					if (got_picture[0]!=0) {
-
 						avFrame = mpegEncContext.priv_data.displayPicture;
 
 						int bufferSize = avFrame.imageWidth 
@@ -195,6 +194,8 @@ public class H264Parser {
 
 						// Data in h264 is stored in reversed order as in 
 						// .bmp, so we need to "flip" up side down the image
+						
+//						for (int i = 0; i < avFrame.imageHeight; i++) {
 						for (int i = avFrame.imageHeight - 1; i >= 0; i--) {
 							for (int j = 0; j < avFrame.imageWidth; j++) {
 								data = ConvertUtility.integerToByteArray(
@@ -206,12 +207,12 @@ public class H264Parser {
 
 						// Full image
 						data = byteBuffer.array();
+						
 						byte[] header = 
 								generateImageHeader(
 										avFrame.imageWidth, 
 										avFrame.imageHeight, 
 										data.length);
-
 						byte[] image = new byte[data.length + header.length];
 						System.arraycopy(header, 0, image, 0, header.length);
 						System.arraycopy(
@@ -219,10 +220,10 @@ public class H264Parser {
 								image, header.length, 
 								data.length);
 						LOGGER.info("imageSize: " + image.length);
-
 						// Now, we return the image, don't need to continue 
 						// the decoding-precess.
 						inputStream.close();
+
 						return image;
 					}
 					avPacket.size -= len;
@@ -276,13 +277,13 @@ public class H264Parser {
 		// Offset where the pixel array 
 		bitmapHeader.setAttribute(
 				Attribute.FILE_OFFSET_TO_PIXEL_ARRAY, 
-				new byte[] {0x7A,0x00,0x00,0x00});
+				new byte[] {0x36,0x00,0x00,0x00});
 
 		// ------------ DIB Header --------------------
 		// Number of bytes in the DIB header (from this point)
 		bitmapHeader.setAttribute(
 				Attribute.DIB_HEADER_SIZE, 
-				new byte[] {0x6C,0x00,0x00,0x00});
+				new byte[] {0x28,0x00,0x00,0x00});
 
 
 		bitmapHeader.setAttribute(
@@ -392,17 +393,27 @@ public class H264Parser {
 				Attribute.GAMMA_FOR_BLUE_CHANNEL, 
 				new byte[] {0x00,0x00,0x00, 0x00});
 
+		
+		
 		int headerSize = bitmapHeader.dump().length;
 		int fileSize = headerSize + dataSize;
 		LOGGER.info("headerSize: " + headerSize);
 		LOGGER.info("file size: " + fileSize);
 
+		byte[] header = bitmapHeader.dump();
+		
 		bitmapHeader.setAttribute(
 				Attribute.FILE_SIZE, 
 				ConvertUtility.integerToByteArray(fileSize, 
 						ByteOrder.LITTLE_ENDIAN));
-
-		return bitmapHeader.dump();
+		header = bitmapHeader.dump();
+		return header;
 	}
-
+	public static int hashCode(byte[] input) {
+		int result = 17; 
+		for (byte b : input) {
+			result = 31*result + b;
+		}
+		return result;
+	}
 }

@@ -1,3 +1,7 @@
+<%@page import="com.google.appengine.api.datastore.Key"%>
+<%@page import="com.google.appengine.api.datastore.KeyFactory"%>
+<%@page import="com.google.appengine.api.datastore.DatastoreServiceFactory"%>
+<%@page import="com.google.appengine.api.datastore.DatastoreService"%>
 <%@page import="javax.persistence.criteria.CriteriaBuilder.In"%>
 <%@page import="java.util.concurrent.TimeUnit"%>
 <%@page import="java.util.logging.Level"%>
@@ -39,6 +43,8 @@
 	// Some Google Service
 	private static final PipelineService service = PipelineServiceFactory
 			.newPipelineService();
+	private static final DatastoreService datastoreService = 
+			DatastoreServiceFactory.getDatastoreService();
 	
 	// Configuration-related properties
 	private static final Logger log;
@@ -97,22 +103,47 @@ h4.withperiod {
 	margin-bottom: 0em;
 }
 </style>
-<script src="result-checker.js"></script>
 </HEAD>
 <BODY>
 	<H2>Image Extractor Service</H2>
 <%
-	//number of image, as we will display each image per media segment 
-	// the number of image is equal to number of segment
-	int nImages =  Integer.parseInt(request.getParameter(SEGMENT_COUNTER));
+	// Enable cache
+	response.addHeader("Cache-Control", "public");
 	String pipelineId = request.getParameter("pipelineId");
-	String fullPathList = request.getParameter("fullPathList");
-	String[] segmentPaths = fullPathList.split(" ");
+	// Get image list
+	String imageInfoKeyStr = request.getParameter("imageInfoKey");
+	Key imageInfoKey = KeyFactory.stringToKey(imageInfoKeyStr);
+	Entity imageInfoEntity = datastoreService.get(imageInfoKey);
+	
+	// We save imageList whose type is List<String> in MPDParserServlet, 
+	// so we can now safety cast Object --> List<String>
+	@SuppressWarnings("unchecked")
+	List<String> imageList = 
+			(List<String>) imageInfoEntity.getProperty("imageList");
+	
+	//number of image, as we will display each image per media segment 
+		// the number of image is equal to number of segment
+		int nImages =  imageList.size();
 	
 	// Calculate rows of image 
 	int imageRows = (int) Math.round(Math.ceil((float)nImages/IMAGES_PER_ROW));
+	long refreshTime = mapreduceConfig.getLong("result.refresh-time",3000);
 %>
-	<p> Result for calculation #<span id="pipelineId"><%=pipelineId%></span> is:<p>
+	<%
+		
+		for (int i = 0; i < imageList.size(); i++) {
+			out.print("<span id='image"+ i +"' style='visibility:hidden'>" + imageList.get(i) + "</span>");
+		}
+	
+	%> 
+	<!-- Save some info in hidden span, to later use, because JSP and 
+	javascript doesn't mix well -->
+	<span id="nImages" style="visibility:hidden"><%=nImages%></span>
+	<span id=imageInfoKey style="visibility:hidden"><%=imageInfoKeyStr%></span>
+	<span id="isImageCached" style="visibility:hidden">false</span>
+	<span id="pipelineId" style="visibility:hidden"><%=pipelineId%></span>
+	<span id="refreshTime" style="visibility:hidden"><%=refreshTime%></span>
+	<p> Result:<p>
 <%	
 	// Create table of result
 	out.println("<table border='1'>");
@@ -121,39 +152,97 @@ h4.withperiod {
 		for (int j = 0; j < IMAGES_PER_ROW; j++) {
 			int index = i*IMAGES_PER_ROW + j;
 			if (nImages > 0) { // Placeholder
-				out.print("<td ><image height='" + IMAGES_HEIGHT + " ' width='"+IMAGES_WIDTH+"' src='/blobstore-reader-servlet?blobPath=" + segmentPaths[index]  + "' alt='image loading...'></td>");
+				out.println("<td id='image"+ index+"' height='" + IMAGES_HEIGHT + " ' width='"+IMAGES_WIDTH+"'> Loading </td>");
 				nImages--;
 			} else { // Padding
 				out.print("<td height='" + IMAGES_HEIGHT + " ' width='"+IMAGES_WIDTH+"' > This is an align cell  </td>");
+				out.println("<br>");
 			}
 		}
 		out.print("</tr>");
 	}
-	out.print("</table>");
+	out.print("</table>"); 
 %>
-	<script type="text/javascript" src="cookie.js"></script> 
+	<script type="text/javascript" src="cookie.js"></script>
 	<script type="text/javascript">
-	
+		
 		var result;
+		var i;
+		var nImages = document.getElementById("nImages").innerHTML;
+		var isImageCached = (document.getElementById("isImageCached").innerHTML == "true");
+		if (!isImageCached) {
+			for (i = 0; i < nImages; i++) {
+				eraseCookie("image" + i);
+			}	
+			eraseCookie("loadedImage");
+			document.getElementById("isImageCached").innerHTML = true;
+		}
+		
+		
+		
 		if (window.XMLHttpRequest) {
 			// code for IE7+, Firefox, Chrome, Opera, Safari
 			xmlhttp=new XMLHttpRequest();
 		} else {// code for IE6, IE5
 			xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
 		}
+		
+		
 		xmlhttp.onreadystatechange=function() {
 			if (xmlhttp.readyState==4 && xmlhttp.status==200) {
-				result = xmlhttp.responseText;
-				result = result.toUpperCase();
-				if (result != "COMPLETED_SUCCESSFULLY") {
+				var resultStr = xmlhttp.responseText;
+				var result = eval("(" + resultStr + ")");
+				
+				var status = "" + result.status;
+				var nImages = result.nImages;
+				var loadedImage = readCookie("loadedImage");
+				if (loadedImage == null) {
+					loadedImage = 0;
+				}
+				
+				if ((status.toUpperCase() != "COMPLETED_SUCCESSFULLY")
+						&& (loadedImage != nImages)) {
+					
+					var images = result.images;
+					for (name in images) {
+						if (typeof images[name] !== 'function') {
+							if (readCookie(name) == null) {
+								//document.getElementById("image" + i).innerHTML = images[name];
+								
+								var img = document.createElement("img");
+						        img.src = images[name];
+						        img.width = 200;
+						        img.height = 200;
+						        img.alt = "Logo";
+						        document.getElementById('image1').appendChild(img);
+						        var txt = document.createTextNode(" This text was added to the DIV.");
+						        document.getElementById('image1').appendChild(txt); 
+						        document.body.appendChild(img);
+								loadedImage = loadedImage + 1;
+								createCookie("loadedImage", loadedImage, 1);
+								createCookie(name, images[name], 1);
+							}
+						}
+					}
 					setTimeout(function() {
-						document.location.reload(true);
-					},5000);
+						// document.location.reload(false);
+						
+						var url = "/check-task?pipelineId=" + document.getElementById("pipelineId").innerHTML + 
+						"&imageInfoKey=" + document.getElementById("imageInfoKey").innerHTML;
+						/* xmlhttp.open("GET","/check-task",true); */
+						xmlhttp.open("GET",url,true);
+						xmlhttp.send();
+						xmlDoc=xmlhttp.responseXML;
+						
+						
+					},document.getElementById("refreshTime").innerHTML);
+				} else { // Successfull, delete cookie
+					
 				}
 			}
 		}
-		var url = "/check-task?pipelineId=" + document.getElementById("pipelineId").innerHTML;
-		<%-- xmlhttp.open("GET","/check-task?pipelineId=" + ,true); --%>
+		var url = "/check-task?pipelineId=" + document.getElementById("pipelineId").innerHTML + 
+				"&imageInfoKey=" + document.getElementById("imageInfoKey").innerHTML;
 		/* xmlhttp.open("GET","/check-task",true); */
 		xmlhttp.open("GET",url,true);
 		xmlhttp.send();
