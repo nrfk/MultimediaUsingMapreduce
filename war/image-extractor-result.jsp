@@ -129,13 +129,9 @@ h4.withperiod {
 	int imageRows = (int) Math.round(Math.ceil((float)nImages/IMAGES_PER_ROW));
 	long refreshTime = mapreduceConfig.getLong("result.refresh-time",3000);
 %>
-	<%
-		
-		for (int i = 0; i < imageList.size(); i++) {
-			out.print("<span id='image"+ i +"' style='visibility:hidden'>" + imageList.get(i) + "</span>");
-		}
 	
-	%> 
+	<p id="resultTag"> Result:<p>
+	<p id="placeholder"></p>
 	<!-- Save some info in hidden span, to later use, because JSP and 
 	javascript doesn't mix well -->
 	<span id="nImages" style="visibility:hidden"><%=nImages%></span>
@@ -143,26 +139,6 @@ h4.withperiod {
 	<span id="isImageCached" style="visibility:hidden">false</span>
 	<span id="pipelineId" style="visibility:hidden"><%=pipelineId%></span>
 	<span id="refreshTime" style="visibility:hidden"><%=refreshTime%></span>
-	<p> Result:<p>
-<%	
-	// Create table of result
-	out.println("<table border='1'>");
-	for (int i = 0; i < imageRows; i++) {
-		out.print("<tr>");
-		for (int j = 0; j < IMAGES_PER_ROW; j++) {
-			int index = i*IMAGES_PER_ROW + j;
-			if (nImages > 0) { // Placeholder
-				out.println("<td id='image"+ index+"' height='" + IMAGES_HEIGHT + " ' width='"+IMAGES_WIDTH+"'> Loading </td>");
-				nImages--;
-			} else { // Padding
-				out.print("<td height='" + IMAGES_HEIGHT + " ' width='"+IMAGES_WIDTH+"' > This is an align cell  </td>");
-				out.println("<br>");
-			}
-		}
-		out.print("</tr>");
-	}
-	out.print("</table>"); 
-%>
 	<script type="text/javascript" src="cookie.js"></script>
 	<script type="text/javascript">
 		
@@ -209,15 +185,14 @@ h4.withperiod {
 							if (readCookie(name) == null) {
 								//document.getElementById("image" + i).innerHTML = images[name];
 								
+					
 								var img = document.createElement("img");
 						        img.src = images[name];
 						        img.width = 200;
 						        img.height = 200;
 						        img.alt = "Logo";
-						        document.getElementById('image1').appendChild(img);
-						        var txt = document.createTextNode(" This text was added to the DIV.");
-						        document.getElementById('image1').appendChild(txt); 
-						        document.body.appendChild(img);
+						        document.getElementById("placeholder").appendChild(img);
+						        //document.body.appendChild(img);
 								loadedImage = loadedImage + 1;
 								createCookie("loadedImage", loadedImage, 1);
 								createCookie(name, images[name], 1);
@@ -236,8 +211,6 @@ h4.withperiod {
 						
 						
 					},document.getElementById("refreshTime").innerHTML);
-				} else { // Successfull, delete cookie
-					
 				}
 			}
 		}
@@ -248,6 +221,14 @@ h4.withperiod {
 		xmlhttp.send();
 		xmlDoc=xmlhttp.responseXML;
     </script> 
+    <%
+		
+		for (int i = 0; i < imageList.size(); i++) {
+			out.print("<span id='image"+ i +"' style='visibility:hidden'>" + imageList.get(i) + "</span>");
+		}
+	
+	%> 
+	
 </BODY>
 </HTML>
 

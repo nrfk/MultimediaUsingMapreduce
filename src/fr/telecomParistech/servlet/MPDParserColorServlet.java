@@ -46,7 +46,7 @@ import fr.telecomParistech.parser.MP4Parser;
  * @author xuan-hoa.nguyen@telecom-paristech.fr
  *
  */
-public class MPDParserServlet extends HttpServlet {
+public class MPDParserColorServlet extends HttpServlet {
 	private enum ProcessType {
 		MODIFY_MPD,
 		EXTRACT_IMAGE, 
@@ -372,7 +372,7 @@ public class MPDParserServlet extends HttpServlet {
 		
 		switch (processType) {
 		case EXTRACT_IMAGE:
-			dispatchedLink = "/image-extractor-servlet";
+			dispatchedLink = "/change-color-servlet";
 			break;
 
 		case MODIFY_MPD:
@@ -382,7 +382,7 @@ public class MPDParserServlet extends HttpServlet {
 			break;
 		
 		case CHANGE_COLOR:
-			dispatchedLink = "/image-extractor-servlet";
+			dispatchedLink = "/change-color-servlet";
 			break;
 
 		default:

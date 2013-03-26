@@ -92,6 +92,19 @@
 	    <url-pattern>/mpd-parser-servlet</url-pattern>
   	</servlet-mapping>
   	
+  	<!-- MPDParserColorServlet -->
+	<servlet>
+	    <servlet-name> MPDParserColorServlet </servlet-name>
+	    <servlet-class>
+	      fr.telecomParistech.servlet.MPDParserColorServlet
+	    </servlet-class>
+	</servlet>
+	<servlet-mapping>
+	    <servlet-name> MPDParserColorServlet </servlet-name>
+	    <url-pattern>/mpd-parser-color-servlet</url-pattern>
+	</servlet-mapping>
+  	
+  	
   	<!-- ImageExtractorServlet -->
   	<servlet>
     	<servlet-name>ImageExtractorServlet</servlet-name>
@@ -102,6 +115,18 @@
   	<servlet-mapping>
 	    <servlet-name>ImageExtractorServlet</servlet-name>
 	    <url-pattern>/image-extractor-servlet</url-pattern>
+  	</servlet-mapping>
+  	
+  	<!-- ChangeColorServlet -->
+  	<servlet>
+    	<servlet-name>ChangeColorServlet</servlet-name>
+    	<servlet-class>
+    	  fr.telecomParistech.servlet.ChangeColorServlet
+   	    </servlet-class>
+  	</servlet>
+  	<servlet-mapping>
+	    <servlet-name>ChangeColorServlet</servlet-name>
+	    <url-pattern>/change-color-servlet</url-pattern>
   	</servlet-mapping>
   	
   	<!-- MPDModificatorServlet -->

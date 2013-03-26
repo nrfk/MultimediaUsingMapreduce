@@ -29,13 +29,14 @@ import com.google.appengine.tools.mapreduce.Mapper;
 import fr.telecomParistech.image.bitmap.ConvertUtility;
 import fr.telecomParistech.parser.H264Parser;
 import fr.telecomParistech.parser.MP4Parser;
+import fr.telecomParistech.parser.MyH264Parser;
 
 /**
  * This is the Mapper function of the Map-Reduce extractor.
  * @author xuan-hoa.nguyen@telecom-paristech.fr
  *
  */
-public class ImageExtractorMapper extends Mapper<Entity, Integer, String>{
+public class ChangeColorMapper extends Mapper<Entity, Integer, String>{
 	private static final long serialVersionUID = -1726878920669357399L;
 
 	// Configuration-related properties
@@ -51,7 +52,7 @@ public class ImageExtractorMapper extends Mapper<Entity, Integer, String>{
 	private static AtomicInteger counter = new AtomicInteger(0);
 	// static initializer 
 	static {
-		log = Logger.getLogger(ImageExtractorMapper.class.getName());
+		log = Logger.getLogger(ChangeColorMapper.class.getName());
 
 		// First, set log level in order to display log info during this 
 		// static initializer. It's also the default log level
@@ -168,7 +169,7 @@ public class ImageExtractorMapper extends Mapper<Entity, Integer, String>{
 		}
 
 		// Now pass it to H264 parser
-		H264Parser h264Parser = new H264Parser();
+		MyH264Parser h264Parser = new MyH264Parser();
 		byte[] iFrame = null;
 		boolean isExceptionOccured = false;
 		try {

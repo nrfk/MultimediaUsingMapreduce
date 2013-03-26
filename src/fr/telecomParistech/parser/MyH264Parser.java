@@ -26,11 +26,11 @@ import fr.telecomParistech.image.bitmap.ConvertUtility;
  * @author xuan-hoa.nguyen@telecom-paristech.fr
  *
  */
-public class H264Parser {
+public class MyH264Parser {
 
 	public static final int INBUF_SIZE = 65535;
 	private static final Logger LOGGER = 
-			Logger.getLogger(H264Parser.class.getName());
+			Logger.getLogger(MyH264Parser.class.getName());
 	
 	
 	private int[] buffer = null;
@@ -187,7 +187,7 @@ public class H264Parser {
 							buffer = new int[bufferSize];
 						}
 
-						FrameUtils.YUV2RGB(avFrame, buffer);
+						FrameUtils.YUV2RRR(avFrame, buffer);
 						
 						
 						ByteBuffer byteBuffer = 
